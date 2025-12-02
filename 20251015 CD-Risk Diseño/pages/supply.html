@@ -1,0 +1,84 @@
+<div class="row">
+    <div class="col-md-6">
+        <h5 class="mb-4 text-primary">SUMINISTRO ELÉCTRICO</h5>
+        <p class="text-secondary small mb-3">
+            - Aéreo. Distribución eléctrica al edificio mediante un cable aéreo.<br>
+            - Enterrado. Distribución eléctrica a la estructura mediante un cable subterráneo.<br>
+            - No conectado. No hay línea eléctrica conectada a la estructura.
+        </p>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="cableSituation" class="col-sm-5 col-form-label fw-bold">Situación del cable</label>
+            <div class="col-sm-7">
+                <select class="form-select" id="cableSituation">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="Aereo" selected>Aéreo</option>
+                    <option value="Enterrado">Enterrado</option>
+                    <option value="NoConectado">No conectado</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="cableShielded" class="col-sm-5 col-form-label fw-bold">Cable apantallado</label>
+            <div class="col-sm-7">
+                <select class="form-select" id="cableShielded">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="Apantallado" selected>Apantallado</option>
+                    <option value="NoApantallado">No apantallado</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="transformerMVLV" class="col-sm-5 col-form-label fw-bold">Transformador MT/BT</label>
+            <div class="col-sm-7">
+                <select class="form-select" id="transformerMVLV">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="SinTransformador" selected>Sin transformador</option>
+                    <option value="ConTransformador">Con transformador</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h5 class="mb-3 text-primary">OTROS SERVICIOS AÉREOS</h5>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="aerialServicesCount" class="col-sm-5 col-form-label fw-bold">Número de servicios</label>
+            <div class="col-sm-7">
+                <input type="number" class="form-control" id="aerialServicesCount" value="1">
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="aerialServiceType" class="col-sm-5 col-form-label fw-bold">Tipo de cable</label>
+            <div class="col-sm-7">
+                <select class="form-select" id="aerialServiceType">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="Coaxial" selected>Coaxial</option>
+                    <option value="FibraOptica">Fibra Óptica</option>
+                </select>
+            </div>
+        </div>
+
+        <h5 class="mb-3 text-primary mt-4">OTROS SERVICIOS ENTERRADOS</h5>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="buriedServicesCount" class="col-sm-5 col-form-label fw-bold">Número de servicios</label>
+            <div class="col-sm-7">
+                <input type="number" class="form-control" id="buriedServicesCount" value="0">
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="buriedServiceType" class="col-sm-5 col-form-label fw-bold">Tipo de cable</label>
+            <div class="col-sm-7">
+                <select class="form-select" id="buriedServiceType">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="No aplica" selected>No aplica</option>
+                    <option value="Coaxial">Coaxial</option>
+                    <option value="FibraOptica">Fibra Óptica</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>

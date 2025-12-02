@@ -1,0 +1,1087 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css"> <div class="row">
+    <div class="col-md-5">
+        <h5 class="mb-3 text-primary">DETALLES DE LA PROTECCIÓN</h5>
+        <br>
+        <div class="form-group mb-3 row align-items-center">
+            <label for="buildingNameExt" class="col-sm-5 col-form-label fw-regular">Nombre del edificio</label>
+            <div class="col-sm-7">
+                <input type="text" class="form-control" id="buildingNameExt" value="EDIFICIO PRODUCCIÓN" readonly>
+            </div>
+        </div>
+
+        <div class="form-group mb-3 row align-items-center">
+            <div class="col-sm-5">
+                <button class="btn btn-primary" type="button" id="addPararrayosBtn">
+                    + Añadir Pararrayos
+                </button>
+            </div>
+
+            <div class="col-sm-7 text-primary d-flex align-items-center">
+                PARARRAYOS
+                <button class="btn btn-sm btn-primary mx-2" type="button" onclick="previousPararrayos()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <input type="text" id="currentPararrayos" value="1" readonly
+                    class="form-control form-control-sm d-inline-block" style="width: 40px; text-align: center;">
+                <button class="btn btn-sm btn-primary ms-2" type="button" onclick="nextPararrayos()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="border border-1 p-3 rounded">
+            <div class="form-group mb-2 row align-items-center">
+                <label for="height" class="col-sm-5 col-form-label fw-regular">Altura del edificio</label>
+                <div class="col-sm-7">
+                    <input type="text" class="form-control" id="height" value="20.00 m" readonly>
+                </div>
+            </div>
+
+           <br> 
+             <hr class="my-1">
+              <br> 
+            <h5 class="mb-3 text-primary">CAPTACIÓN</h5>
+            
+             
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-5 col-form-label fw-regular">Tipo de cabezal</p>
+                <div class="col-sm-7">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="serie" id="datControllerRemote"
+                            value="DAT CONTROLER® REMOTE" checked>
+                        <label class="form-check-label" for="datControllerRemote">
+                            DAT CONTROLER® REMOTE
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="serie" id="datControllerPlus"
+                            value="DAT CONTROLER® PLUS">
+                        <label class="form-check-label" for="datControllerPlus">
+                            DAT CONTROLER® PLUS
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-2 row align-items-center">
+                <label for="cabezal" class="col-sm-5 col-form-label fw-regular">Modelo de cabezal</label>
+                <div class="col-sm-7">
+                    <select class="form-select" id="cabezal">
+                        <option value="" selected disabled>--Por favor, elige una opción--</option>
+                        <option value="DAT CONTROLER REMOTE 15" data-serie="DAT CONTROLER® REMOTE">DAT CONTROLER REMOTE 15</option>
+                        <option value="DAT CONTROLER REMOTE 30" data-serie="DAT CONTROLER® REMOTE">DAT CONTROLER REMOTE 30</option>
+                        <option value="DAT CONTROLER REMOTE 45" data-serie="DAT CONTROLER® REMOTE">DAT CONTROLER REMOTE 45</option>
+                        <option value="DAT CONTROLER REMOTE 60" data-serie="DAT CONTROLER® REMOTE">DAT CONTROLER REMOTE 60</option>
+                        <option value="DAT CONTROLER PLUS 15" data-serie="DAT CONTROLER® PLUS">DAT CONTROLER PLUS 15</option>
+                        <option value="DAT CONTROLER PLUS 30" data-serie="DAT CONTROLER® PLUS">DAT CONTROLER PLUS 30</option>
+                        <option value="DAT CONTROLER PLUS 45" data-serie="DAT CONTROLER® PLUS">DAT CONTROLER PLUS 45</option>
+                        <option value="DAT CONTROLER PLUS 60" data-serie="DAT CONTROLER® PLUS">DAT CONTROLER PLUS 60</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <label for="protectionRadius" class="col-sm-5 col-form-label fw-regular">Radio de Protección</label>
+                <div class="col-sm-7">
+                    <select class="form-select" id="protectionRadius">
+                        <option selected disabled>--Carga automática (NIVEL III)--</option>
+                    </select>
+                </div>
+            </div>
+            <hr class="my-1">
+
+            <div class="form-group mb-3 row align-items-center">
+                <label for="TipoMastil" class="col-md-5 col-form-label fw-regular">Tipo de mástil</label>
+                <div class="col-md-7">
+                    <select class="form-select select-with-images" id="TipoMastil">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="Mastil" data-img-src="images/products/AT-056A.JPG">Mástil</option>
+                        <option value="TCelosia" data-img-src="images/products/AT-031C_APLI.JPG">Torretas de celosía</option>
+                        <option value="MAutonomo" data-img-src="images/products/AT-090C_APLI.JPG">Mástil autónomo</option>
+                        <option value="TAutosoportada" data-img-src="images/products/AT-050C_APLI.JPG">Torre autosoportada</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group mb-3 row align-items-center">
+                <label for="mastilHeight" class="col-md-5 col-form-label fw-regular">Altura del mástil</label>
+                <div class="col-md-7">
+                    <select class="form-select" id="mastilHeight">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="3m">3m</option>
+                        <option value="6m">6m</option>
+                        <option value="8m">8m</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr class="my-1">
+
+            <div class="form-group mb-3 row align-items-center">
+                <label for="anclajeTipo" class="col-md-5 col-form-label fw-regular">Tipo de anclaje</label>
+                <div class="col-md-7">
+                    <select class="form-select select-with-images" id="anclajeTipo">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="AEnU" data-img-src="images/products/AT-023B.JPG">Anclaje en U</option>
+                        <option value="ABAngulo" data-img-src="images/products/AT-038B.JPG">Barra en ángulo</option>
+                        <option value="ALigero" data-img-src="images/products/AT-042B.JPG">Ligero</option>
+                        <option value="EATPlano" data-img-src="images/products/AT-003B.JPG">Tejado plano</option>
+                        <option value="AAjustable" data-img-src="images/products/AT-078B_APLI.JPG">Ajustable</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group mb-3 row align-items-center">
+                <label for="anclajes" class="col-md-5 col-form-label fw-regular">Separación del anclaje</label>
+                <div class="col-md-7">
+                    <select class="form-select" id="anclajes">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="15cm">15cm</option>
+                        <option value="30cm">30cm</option>
+                        <option value="60cm">60cm</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <h5 class="mb-3 text-primary">ESQUEMA DE PROTECCIÓN</h5>
+
+        <br>
+
+        <div class="d-flex align-items-center mb-3 flex-wrap">
+            <span class="fw me-2 text-nowrap">Plano</span>
+            <div class="btn-group me-2" role="group" aria-label="Herramientas de plano">
+                <button type="button" class="btn btn-secondary" title="Subir plano"><i class="fas fa-upload"></i></button>
+                <button type="button" class="btn btn-secondary" title="Mover plano"><i class="fas fa-up-down-left-right"></i></button>
+            </div>
+
+            <span class="fw me-2 text-nowrap">Edificio</span>
+            <div class="btn-group me-2" role="group" aria-label="Herramientas de área">
+                <button type="button" class="btn btn-secondary" title="Añadir área" onclick="startDrawingArea()">
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" title="Editar área" onclick="editCurrentArea()">
+                    <i class="fas fa-pen-to-square"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" title="Eliminar área" onclick="deleteCurrentArea()">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" title="Duplicar área"><i class="fas fa-copy"></i></button>
+                <button type="button" class="btn btn-secondary" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button type="button" class="btn btn-secondary" title="Configuración"><i class="fas fa-cogs"></i></button>
+            </div>
+
+            <span class="fw me-2 text-nowrap">Pararrayos</span>
+            <div class="btn-group" role="group" aria-label="Herramientas de pararrayos">
+                <button type="button" class="btn btn-secondary" title="Regla"><i class="fas fa-ruler"></i></button>
+                <button type="button" class="btn btn-secondary" title="Calcular"><i class="fas fa-calculator"></i></button>
+                <button type="button" class="btn btn-secondary" title="Propiedades de pararrayos"><i class="fas fa-bolt"></i></button>
+                <button type="button" class="btn btn-secondary" title="Borrar pararrayos" onclick="deleteCurrentPararrayos()">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        
+<div class="border border-warning border-3 bg-light position-relative" 
+     style="min-height: 500px; overflow: hidden;" 
+     id="mapContainer">
+
+    <div id="map-selection-overlay" class="overlay">
+        <h4>Selecciona cómo quieres comenzar:</h4>
+        <button id="btn-upload-map" class="btn btn-primary"><i class="fa-solid fa-upload me-2"></i>Subir tu mapa</button>
+        <button id="btn-blank-grid" class="btn btn-secondary"><i class="fa-solid fa-pen-ruler me-2"></i>Dibujar sobre cuadrícula</button>
+        <input type="file" id="map-file-input" accept="image/*" style="display: none;">
+    </div>
+
+    <img id="mapImage" src="images/mapa_base.jpg" class="img-fluid w-100" alt="Esquema de Protección" style="height: auto;">
+    
+    <!-- Canvas de cuadrícula/fondo -->
+    <canvas id="backgroundCanvas" class="position-absolute top-0 start-0" style="z-index:5; pointer-events:none;"></canvas>
+
+    <!-- Canvas de dibujo del edificio -->
+    <canvas id="drawingCanvas" class="position-absolute top-0 start-0" style="z-index:10; pointer-events:auto;"></canvas>
+
+    <!-- Botón de cancelar -->
+    <button id="btn-cancel" class="btn btn-danger position-absolute top-0 end-0 m-2" style="display:none;">✖</button>
+
+    <div id="protectionZones"></div>
+</div>
+
+
+
+
+        <div class="d-flex align-items-center justify-content-center mt-3">
+            <button type="button" class="btn btn-sm btn-secondary me-2" title="Disminuir escala" onclick="zoomOut()">
+                <i class="fas fa-minus"></i>
+            </button>
+            <input type="range" class="form-range mx-2" min="10" max="200" value="100" id="scaleRange" style="width: 150px;" oninput="updateScaleText()">
+            <button type="button" class="btn btn-sm btn-secondary ms-2" title="Aumentar escala" onclick="zoomIn()">
+                <i class="fas fa-plus"></i>
+            </button>
+            <span class="ms-3 fw-bold" id="scaleText">Escala 50m</span>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>
+
+<style>
+.protection-zone {
+    position: absolute;
+    border: 2px dashed #f7a800;
+    border-radius: 50%;
+    background-color: rgba(247, 168, 0, 0.25);
+    cursor: move;
+    user-select: none;
+    /* Esto centra el elemento, por lo que left/top deben apuntar al centro, no a la esquina */
+    transform: translate(-50%, -50%); 
+    z-index: 10;
+}
+.protection-zone::after {
+    content: '⚡';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: #f7a800;
+    pointer-events: none;
+}
+</style>
+
+<div class="modal fade" id="infoModal_area" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">Información sobre el área</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="this.blur()"></button>
+            </div>
+            <div class="modal-body">
+                Haz clic para definir los puntos del área. Doble clic para guardar.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="this.blur()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+// === ELEMENTOS PRINCIPALES ===
+const canvas = document.getElementById('drawingCanvas');
+const ctx = canvas.getContext('2d');
+const container = document.getElementById('mapContainer');
+const overlay = document.getElementById('map-selection-overlay');
+const fileInput = document.getElementById('map-file-input');
+const img = document.getElementById('mapImage');
+
+// Crear botón “X” si no existe
+let btnCancel = document.getElementById('btnCancel');
+if (!btnCancel) {
+  btnCancel = document.createElement('button');
+  btnCancel.id = 'btnCancel';
+  btnCancel.textContent = '✖';
+  btnCancel.title = 'Volver a selección';
+  btnCancel.style.position = 'absolute';
+  btnCancel.style.top = '10px';
+  btnCancel.style.right = '10px';
+  btnCancel.style.background = '#dc3545';
+  btnCancel.style.color = '#fff';
+  btnCancel.style.border = 'none';
+  btnCancel.style.borderRadius = '50%';
+  btnCancel.style.width = '36px';
+  btnCancel.style.height = '36px';
+  btnCancel.style.fontSize = '18px';
+  btnCancel.style.cursor = 'pointer';
+  btnCancel.style.zIndex = '50';
+  btnCancel.style.display = 'none';
+  container.appendChild(btnCancel);
+}
+
+// === VARIABLES DE ESTADO ===
+let currentMode = null; // 'map' o 'grid'
+let uploadedImgData = null;
+
+// === FUNCIÓN: AJUSTAR CANVAS AL CONTENEDOR ===
+function resizeCanvas() {
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+
+  // Redibujar si ya había algo
+  if (currentMode === 'grid') {
+    drawGrid();
+  } else if (currentMode === 'map' && uploadedImgData) {
+    drawImage(uploadedImgData);
+  }
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// === FUNCIÓN: DIBUJAR IMAGEN CENTRADA ===
+function drawImage(dataURL) {
+  const image = new Image();
+  image.onload = function () {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const imgRatio = image.width / image.height;
+    const canvasRatio = canvas.width / canvas.height;
+    let drawWidth, drawHeight, offsetX, offsetY;
+
+    if (imgRatio > canvasRatio) {
+      drawWidth = canvas.width;
+      drawHeight = drawWidth / imgRatio;
+      offsetX = 0;
+      offsetY = (canvas.height - drawHeight) / 2;
+    } else {
+      drawHeight = canvas.height;
+      drawWidth = drawHeight * imgRatio;
+      offsetY = 0;
+      offsetX = (canvas.width - drawWidth) / 2;
+    }
+
+    ctx.drawImage(image, offsetX, offsetY, drawWidth, drawHeight);
+  };
+  image.src = dataURL;
+}
+
+// === FUNCIÓN: DIBUJAR CUADRÍCULA ===
+function drawGrid() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const gridSize = 25;
+  ctx.strokeStyle = '#d0d0d0';
+  ctx.lineWidth = 1;
+
+  for (let x = 0.5; x <= canvas.width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+
+  for (let y = 0.5; y <= canvas.height; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+
+  // Líneas más marcadas cada 5 cuadros
+  ctx.strokeStyle = '#b0b0b0';
+  ctx.lineWidth = 1.5;
+  for (let x = 0.5; x <= canvas.width; x += gridSize * 5) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0.5; y <= canvas.height; y += gridSize * 5) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(canvas.width, y);
+    ctx.stroke();
+  }
+}
+
+// === BOTÓN: SUBIR MAPA ===
+document.getElementById('btn-upload-map').addEventListener('click', () => {
+  fileInput.click();
+});
+
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    uploadedImgData = event.target.result;
+    drawImage(uploadedImgData);
+    overlay.style.display = 'none';
+    img.style.display = 'none';
+    btnCancel.style.display = 'block';
+    canvas.style.pointerEvents = 'auto';
+    currentMode = 'map';
+  };
+  reader.readAsDataURL(file);
+});
+
+// === BOTÓN: DIBUJAR SOBRE CUADRÍCULA ===
+document.getElementById('btn-blank-grid').addEventListener('click', () => {
+  drawGrid();
+  overlay.style.display = 'none';
+  img.style.display = 'none';
+  btnCancel.style.display = 'block';
+  canvas.style.pointerEvents = 'auto';
+  currentMode = 'grid';
+});
+
+// === BOTÓN: VOLVER A MENÚ ===
+btnCancel.addEventListener('click', () => {
+  overlay.style.display = 'flex';
+  img.style.display = 'block';
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  btnCancel.style.display = 'none';
+  canvas.style.pointerEvents = 'none';
+  currentMode = null;
+  uploadedImgData = null;
+});
+
+
+
+
+
+
+
+
+// === FUNCIÓN AUTO-EJECUTABLE PARA GARANTIZAR QUE EL SCRIPT CORRA INMEDIATAMENTE ===
+(function() {
+    
+    // ----------------------------------------------------
+    // --- GESTIÓN DE ESTADO PERSISTENTE ---
+    // ----------------------------------------------------
+
+    // 1. Inicializar el objeto global de datos si no existe
+    window.protectionSchemeData = window.protectionSchemeData || {
+        nextZoneId: 1,
+        currentPararrayosIndex: 1,
+        zones: [],      // Array para los objetos de pararrayos
+        areas: [],      // Array para los polígonos de área
+        isDrawingMode: false,
+        currentAreaPoints: []
+    };
+
+    const data = window.protectionSchemeData; // Referencia corta al objeto persistente
+
+    // === Referencias a elementos del DOM ===
+    let mapImage = null;
+    let canvas = null;
+    let ctx = null; 
+    let mapContainer = null;
+    let protectionZonesContainer = null;
+    
+    // Almacenar referencias para poder limpiar los listeners en la siguiente carga
+    window.cleanupListeners = window.cleanupListeners || [];
+
+    // --- Definiciones de datos que no cambian ---
+    const protectionRadii = {
+        'DAT CONTROLER PLUS 15': { I: 32, II: 38, III: 46, IV: 52 },
+        'DAT CONTROLER PLUS 30': { I: 48, II: 55, III: 64, IV: 72 },
+        'DAT CONTROLER PLUS 45': { I: 63, II: 71, III: 81, IV: 90 },
+        'DAT CONTROLER PLUS 60': { I: 79, II: 87, III: 97, IV: 107 },
+        'DAT CONTROLER REMOTE 15': { I: 32, II: 38, III: 46, IV: 52 },
+        'DAT CONTROLER REMOTE 30': { I: 48, II: 55, III: 64, IV: 72 },
+        'DAT CONTROLER REMOTE 45': { I: 63, II: 71, III: 81, IV: 90 },
+        'DAT CONTROLER REMOTE 60': { I: 79, II: 87, III: 97, IV: 107 }
+    };
+    
+    // Guardar las opciones del select de cabezal para poder filtrar
+    let allCabezalOptionsData = [];
+    
+    
+    // ====================================================================
+    // === LÓGICA CLAVE: FILTRADO DE MODELOS Y CARGA DE RADIO III ===
+    // ====================================================================
+    
+    /**
+     * Filtra los modelos de cabezal visibles basándose en el radio seleccionado (REMOTE/PLUS).
+     * Se llama al inicio y al cambiar el 'Tipo de cabezal'.
+     */
+    function filterCabezalModels() {
+        const cabezalSelect = document.getElementById('cabezal');
+        const selectedRadio = document.querySelector('input[name="serie"]:checked');
+        
+        if (!cabezalSelect || !selectedRadio) return;
+
+        const selectedSerie = selectedRadio.value;
+        const currentSelectedValue = cabezalSelect.value;
+        let newSelectedValue = ""; 
+
+        // 1. Iterar sobre todas las opciones originales
+        allCabezalOptionsData.forEach(optionData => {
+            const optionElement = cabezalSelect.querySelector(`option[value="${optionData.value}"]`);
+            if (!optionElement) return;
+
+            // Mostrar/Ocultar
+            if (optionData.serie === selectedSerie) {
+                optionElement.style.display = 'block';
+                // Si la opción que estaba seleccionada antes del cambio es válida ahora, la mantenemos
+                if (optionData.value === currentSelectedValue) {
+                     newSelectedValue = currentSelectedValue;
+                }
+            } else {
+                optionElement.style.display = 'none';
+            }
+        });
+        
+        // 2. Aplicar la nueva selección y forzar el cambio si es necesario
+        if (newSelectedValue) {
+            cabezalSelect.value = newSelectedValue;
+        } else {
+            // Si la opción anterior ya no es válida o no había nada, limpiamos y cargamos el valor por defecto
+            cabezalSelect.value = "";
+        }
+        
+        // 3. Forzar el manejo del cambio en el cabezal para actualizar el radio de protección
+        handleCabezalChange(cabezalSelect);
+    }
+
+
+    /**
+     * Carga y selecciona SOLO el Nivel III en el desplegable de "Radio de Protección".
+     * Se llama al cambiar el 'Modelo de cabezal' o al forzar la limpieza.
+     */
+    function handleCabezalChange(cabezalElement) {
+        const selectedHead = cabezalElement.value;
+        const radiusSelect = document.getElementById('protectionRadius');
+        
+        // 1. Limpiar opciones previas
+        radiusSelect.innerHTML = ''; 
+        
+        // 2. Si no hay cabezal seleccionado, mostrar mensaje por defecto
+        if (!selectedHead || cabezalElement.selectedIndex === 0) {
+            const defaultOption = document.createElement('option');
+            defaultOption.textContent = "--Carga automática (NIVEL III)--";
+            defaultOption.value = "";
+            defaultOption.selected = true;
+            defaultOption.disabled = true;
+            radiusSelect.appendChild(defaultOption);
+            return;
+        }
+
+        // 3. Cargar SOLO el Nivel III
+        if (protectionRadii[selectedHead]) {
+            const radius = protectionRadii[selectedHead]['III'];
+            
+            const option = document.createElement('option');
+            // Usamos el valor del radio como valor de la opción para el cálculo
+            option.value = radius; 
+            option.textContent = `NIVEL III: ${radius}m (Seleccionado por defecto)`;
+            option.selected = true; // SELECCIONAR AUTOMÁTICAMENTE
+            
+            radiusSelect.appendChild(option);
+            
+            // Forzar el evento de cambio para actualizar el pararrayos si existe
+            radiusSelect.dispatchEvent(new Event('change'));
+        }
+    }
+
+
+    // === Funciones de Utilidad (se mantienen) ===
+    function getCentroid(points) {
+        let x = 0, y = 0;
+        const n = points.length;
+        for (let i = 0; i < n; i++) {
+            x += points[i].x;
+            y += points[i].y;
+        }
+        return { x: x / n, y: y / n };
+    }
+
+    // === Inicialización y redimensionamiento del Canvas (Mantiene lógica de reintento) ===
+    function setupCanvas() {
+        if (!ctx || !mapImage || !canvas) {
+             return;
+        }
+
+        if (mapImage.offsetWidth === 0 || mapImage.offsetHeight === 0) {
+            setTimeout(setupCanvas, 50); 
+            return;
+        }
+        
+        canvas.width = mapImage.offsetWidth;
+        canvas.height = mapImage.offsetHeight;
+        
+        canvas.style.left = '0px';
+        canvas.style.top = '0px';
+        canvas.style.pointerEvents = data.isDrawingMode ? 'auto' : 'none';
+
+        redrawArea();
+        redrawProtectionZones();
+    }
+    
+    // Función para redibujar los pararrayos
+    function redrawProtectionZones() {
+        if (!protectionZonesContainer) return;
+
+        protectionZonesContainer.innerHTML = ''; 
+        data.zones.forEach(zoneObj => {
+            const zone = document.createElement('div');
+            zone.className = 'protection-zone';
+            zone.id = 'zone-' + zoneObj.id; 
+
+            zone.style.left = zoneObj.x + 'px';
+            zone.style.top = zoneObj.y + 'px';
+            zone.dataset.lastValidPos = JSON.stringify({ x: zoneObj.x, y: zoneObj.y });
+            
+            zoneObj.element = zone; 
+
+            protectionZonesContainer.appendChild(zone);
+            makeDraggable(zone, zoneObj); 
+            updateZoneSize.call(zoneObj);
+        });
+        
+        document.getElementById('currentPararrayos').value = data.currentPararrayosIndex;
+    }
+
+
+    const resizeHandler = function() {
+        setupCanvas(); 
+        data.zones.forEach(updateZoneSize); 
+    };
+
+    
+    // === Dibujo del área (Polígonos y líneas de edición) (se mantienen) ===
+    function redrawArea() {
+        if (!ctx) return;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        data.areas.forEach(area => {
+            drawPolygon(area.points, true, false); 
+        });
+        
+        if (data.isDrawingMode) {
+            drawPolygon(data.currentAreaPoints, false, true); 
+            
+            data.currentAreaPoints.forEach(point => {
+                ctx.fillStyle = '#f7a800'; 
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 4, 0, 2 * Math.PI); 
+                ctx.fill();
+            });
+        }
+    }
+
+    function drawPolygon(points, fill = false, lineOnly = false) {
+        if (!ctx || points.length < 1) return;
+        
+        ctx.beginPath();
+        ctx.moveTo(points[0].x, points[0].y);
+        
+        for (let i = 1; i < points.length; i++) {
+            ctx.lineTo(points[i].x, points[i].y);
+        }
+        
+        if (!lineOnly && points.length >= 3) {
+            ctx.closePath();
+        }
+        
+        if (fill) {
+            ctx.fillStyle = 'rgba(13, 59, 102, 0.4)'; 
+            ctx.fill();
+        }
+        
+        ctx.strokeStyle = '#0d3b66'; 
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // === Funciones de UI (se mantienen) ===
+    function updateZoneSize() {
+        if (!this.element || !this.radiusM) return; 
+        const scaleFactor = getScaleFactor();
+        // El radio * 2 es el diámetro. * 2 más es para representar la zona de protección (4 veces el radio en el gráfico)
+        const diameterPx = this.radiusM * 4 * scaleFactor; 
+        this.element.style.width = diameterPx + 'px';
+        this.element.style.height = diameterPx + 'px';
+    }
+
+    function getScaleFactor() {
+        const scaleRange = document.getElementById('scaleRange');
+        return scaleRange ? scaleRange.value / 100 : 1;
+    }
+
+    // Funciones globales (se mantienen)
+    window.updateScaleText = function() {
+        const scale = document.getElementById('scaleRange');
+        if (!scale) return;
+
+        const meters = Math.round(50 * (scale.value / 100));
+        const scaleText = document.getElementById('scaleText');
+        if (scaleText) {
+            scaleText.textContent = `Escala ${meters}m`;
+        }
+        data.zones.forEach(updateZoneSize);
+    }
+
+    window.previousPararrayos = function() { 
+        if (data.currentPararrayosIndex > 1) {
+            data.currentPararrayosIndex--;
+            document.getElementById('currentPararrayos').value = data.currentPararrayosIndex;
+            // Lógica para resaltar el pararrayos actual si es necesario
+        }
+    };
+    
+    window.nextPararrayos = function() { 
+        if (data.currentPararrayosIndex < data.zones.length) {
+            data.currentPararrayosIndex++;
+            document.getElementById('currentPararrayos').value = data.currentPararrayosIndex;
+            // Lógica para resaltar el pararrayos actual si es necesario
+        }
+    };
+
+    window.deleteCurrentPararrayos = function() { 
+        if (data.zones.length === 0) return;
+
+        const indexToDelete = data.currentPararrayosIndex - 1;
+        const zoneObj = data.zones[indexToDelete];
+        
+        // 1. Eliminar del DOM
+        if (zoneObj && zoneObj.element) {
+            zoneObj.element.remove();
+        }
+
+        // 2. Eliminar de los datos
+        data.zones.splice(indexToDelete, 1);
+
+        // 3. Ajustar el índice actual
+        if (data.zones.length > 0) {
+            // Si el índice actual era el último, nos movemos al nuevo último.
+            if (data.currentPararrayosIndex > data.zones.length) {
+                data.currentPararrayosIndex = data.zones.length;
+            }
+        } else {
+            data.currentPararrayosIndex = 1;
+        }
+
+        // 4. Actualizar la UI
+        document.getElementById('currentPararrayos').value = data.currentPararrayosIndex;
+    };
+    
+    function showModal(message) { 
+        const modalBody = document.querySelector('#infoModal_area .modal-body');
+        if (modalBody) {
+            modalBody.textContent = message;
+        }
+        const infoModal = new bootstrap.Modal(document.getElementById('infoModal_area'));
+        infoModal.show();
+    }
+    
+    window.startDrawingArea = function() { 
+        if (!canvas) return;
+        data.isDrawingMode = true;
+        data.currentAreaPoints = [];
+        canvas.style.pointerEvents = 'auto';
+        showModal("Haz clic para definir los puntos del área. Doble clic para guardar.");
+    }
+
+    function finishDrawing() { 
+        if (data.currentAreaPoints.length < 3) {
+            showModal("Se requieren al menos 3 puntos para definir un área. Inténtalo de nuevo.");
+            data.currentAreaPoints = [];
+            redrawArea(); 
+            return;
+        }
+
+        data.isDrawingMode = false;
+        canvas.style.pointerEvents = 'none';
+
+        const newArea = {
+            id: Date.now(),
+            points: [...data.currentAreaPoints]
+        };
+        data.areas.push(newArea);
+        data.currentAreaPoints = [];
+        redrawArea(); 
+    }
+    
+    window.editCurrentArea = function() { /* ... (se mantiene) ... */ }
+    window.deleteCurrentArea = function() { /* ... (se mantiene) ... */ }
+    
+    let clickHandler = null;
+    let dblClickHandler = null;
+
+    function attachCanvasListeners() {
+        if (!canvas) return;
+        
+        if (clickHandler) canvas.removeEventListener('click', clickHandler);
+        if (dblClickHandler) canvas.removeEventListener('dblclick', dblClickHandler);
+
+        clickHandler = function(e) {
+            if (!data.isDrawingMode) return;
+            
+            const rect = this.getBoundingClientRect();
+            const x = e.clientX - rect.left; 
+            const y = e.clientY - rect.top;
+            
+            data.currentAreaPoints.push({ x, y }); 
+            
+            redrawArea(); 
+        };
+        canvas.addEventListener('click', clickHandler);
+        window.cleanupListeners.push(() => canvas.removeEventListener('click', clickHandler));
+
+
+        dblClickHandler = function(e) {
+            if (data.isDrawingMode) {
+                e.preventDefault(); 
+                finishDrawing();
+            }
+        };
+        canvas.addEventListener('dblclick', dblClickHandler);
+        window.cleanupListeners.push(() => canvas.removeEventListener('dblclick', dblClickHandler));
+
+    }
+
+
+    // Función de inicialización que se ejecuta al cargar el contenido
+    const initializePage = function() {
+        // 1. Limpiar listeners y obtener referencias
+        if (window.cleanupListeners && Array.isArray(window.cleanupListeners)) {
+             window.cleanupListeners.forEach(cleanup => cleanup());
+             window.cleanupListeners = [];
+        }
+
+        mapImage = document.getElementById('mapImage');
+        canvas = document.getElementById('drawingCanvas');
+        ctx = canvas ? canvas.getContext('2d') : null;
+        mapContainer = document.getElementById('mapContainer');
+        protectionZonesContainer = document.getElementById('protectionZones');
+        
+        // 2. Ejecutar Select2
+        $('.select-with-images').select2({
+            templateResult: formatImageOption,
+            templateSelection: formatImageOption,
+            minimumResultsForSearch: Infinity
+        });
+
+        // 3. Inicializar el Canvas y redibujar
+        window.removeEventListener('resize', resizeHandler);
+        window.addEventListener('resize', resizeHandler);
+        window.cleanupListeners.push(() => window.removeEventListener('resize', resizeHandler));
+        
+        attachCanvasListeners();
+
+        setTimeout(setupCanvas, 100); 
+        
+        updateScaleText();
+        
+        // 4. Inicializar la lista de opciones para poder filtrar
+        const cabezalSelect = document.getElementById('cabezal');
+        if (cabezalSelect && allCabezalOptionsData.length === 0) {
+            allCabezalOptionsData = Array.from(cabezalSelect.querySelectorAll('option'))
+                .filter(opt => opt.value !== "") // Excluir la opción inicial deshabilitada
+                .map(opt => ({
+                    value: opt.value,
+                    text: opt.textContent,
+                    serie: opt.getAttribute('data-serie'),
+                    element: opt
+                }));
+        }
+
+        // 5. Aplicar el filtro inicial (basado en el radio "checked")
+        filterCabezalModels();
+    }
+    
+    // ====================================================================
+    // === EVENT LISTENERS ACTUALIZADOS ===
+    // ====================================================================
+    
+    // 1. Escuchar los cambios en los botones de radio (Tipo de cabezal)
+    document.querySelectorAll('input[name="serie"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            filterCabezalModels(); 
+            // handleCabezalChange se llama dentro de filterCabezalModels
+        });
+        window.cleanupListeners.push(() => radio.removeEventListener('change', filterCabezalModels));
+    });
+
+    // 2. Escuchar los cambios en el Modelo de cabezal
+    document.getElementById('cabezal').addEventListener('change', function () {
+        handleCabezalChange(this); // Carga SOLO NIVEL III
+    });
+
+    // 3. El cambio de protectionRadius debe seguir actualizando el pararrayos (aunque siempre será el mismo valor)
+    document.getElementById('protectionRadius').addEventListener('change', function () {
+        const radiusM = parseFloat(this.value);
+        if (isNaN(radiusM)) return;
+
+        const index = data.currentPararrayosIndex - 1;
+        const zoneObj = data.zones[index];
+        
+        if (zoneObj) {
+            zoneObj.radiusM = radiusM;
+            updateZoneSize.call(zoneObj);
+        }
+    });
+
+    document.getElementById('addPararrayosBtn').addEventListener('click', function () {
+        if (!mapContainer || !protectionZonesContainer) return; 
+        
+        const radiusSelect = document.getElementById('protectionRadius');
+        const radiusM = parseFloat(radiusSelect.value);
+        
+        if (isNaN(radiusM) || radiusSelect.value === "") {
+            showModal("Selecciona un Modelo de cabezal para obtener el Radio de Protección (NIVEL III) asociado.");
+            return;
+        }
+        /* ... (resto de la lógica de addPararrayosBtn se mantiene) ... */
+
+        const container = protectionZonesContainer;
+        const zone = document.createElement('div');
+        zone.className = 'protection-zone';
+        zone.id = 'zone-' + data.nextZoneId; 
+
+        const scaleFactor = getScaleFactor();
+        // NOTA: Se mantiene la fórmula de radio * 4 para el diámetro en el gráfico
+        const diameterPx = radiusM * 4 * scaleFactor; 
+
+        zone.style.width = diameterPx + 'px';
+        zone.style.height = diameterPx + 'px';
+
+        let posX, posY;
+        const mapRect = mapContainer.getBoundingClientRect();
+
+        if (data.areas.length > 0) {
+            const lastArea = data.areas[data.areas.length - 1];
+            const centroid = getCentroid(lastArea.points);
+            posX = centroid.x;
+            posY = centroid.y;
+        } else {
+            // Posicionar en el centro del contenedor si no hay área
+            posX = (mapRect.width / 2);
+            posY = (mapRect.height / 2);
+        }
+        
+        zone.style.left = posX + 'px';
+        zone.style.top = posY + 'px';
+        zone.dataset.lastValidPos = JSON.stringify({ x: posX, y: posY });
+
+        container.appendChild(zone);
+
+        const zoneObj = { 
+            id: data.nextZoneId,
+            element: zone, 
+            radiusM,
+            x: posX,
+            y: posY 
+        };
+        data.zones.push(zoneObj);
+        
+        data.nextZoneId++;
+        data.currentPararrayosIndex = data.zones.length;
+        document.getElementById('currentPararrayos').value = data.zones.length;
+        
+        makeDraggable(zone, zoneObj); 
+        updateZoneSize.call(zoneObj);
+    });
+
+    // === Hacer arrastrable con validación dentro del área (se mantienen) ===
+    function makeDraggable(element, zoneObj) {
+        let isDragging = false;
+        let offsetX, offsetY;
+        
+        const existingListeners = element.listeners || {};
+        for (const event in existingListeners) {
+            element.removeEventListener(event, existingListeners[event]);
+        }
+        element.listeners = {};
+        
+        const mouseDownHandler = function(e) {
+            isDragging = true;
+            const rect = element.getBoundingClientRect();
+            const containerRect = mapContainer.getBoundingClientRect();
+            
+            const currentCenterX = rect.left + rect.width / 2 - containerRect.left;
+            const currentCenterY = rect.top + rect.height / 2 - containerRect.top;
+
+            offsetX = e.clientX - containerRect.left - currentCenterX; 
+            offsetY = e.clientY - containerRect.top - currentCenterY; 
+            
+            element.style.opacity = '0.8';
+            e.preventDefault();
+        };
+        element.addEventListener('mousedown', mouseDownHandler);
+        element.listeners.mousedown = mouseDownHandler;
+
+        const mouseMoveHandler = function(e) {
+            if (!isDragging) return;
+            const rect = mapContainer.getBoundingClientRect();
+
+            let centerX = e.clientX - rect.left - offsetX;
+            let centerY = e.clientY - rect.top - offsetY;
+
+            const radius = element.offsetWidth / 2;
+            
+            // Lógica de restricción de bordes del mapa (se mantiene)
+            centerX = Math.max(radius, Math.min(centerX, rect.width - radius));
+            centerY = Math.max(radius, Math.min(centerY, rect.height - radius));
+            
+            let isValidPosition = true;
+            if (data.areas.length > 0) {
+                isValidPosition = data.areas.some(area => {
+                    return isPointInPolygon({ x: centerX, y: centerY }, area.points);
+                });
+            }
+            
+            let finalX = centerX;
+            let finalY = centerY;
+
+            if (!isValidPosition) {
+                const lastValid = element.dataset.lastValidPos ? JSON.parse(element.dataset.lastValidPos) : { x: centerX, y: centerY };
+                finalX = parseFloat(lastValid.x);
+                finalY = parseFloat(lastValid.y);
+            } else {
+                element.dataset.lastValidPos = JSON.stringify({ x: centerX, y: centerY });
+                
+                zoneObj.x = centerX;
+                zoneObj.y = centerY;
+            }
+
+            element.style.left = finalX + 'px';
+            element.style.top = finalY + 'px';
+        };
+        document.addEventListener('mousemove', mouseMoveHandler);
+        window.cleanupListeners.push(() => document.removeEventListener('mousemove', mouseMoveHandler));
+
+        const mouseUpHandler = function() {
+            if (isDragging) {
+                isDragging = false;
+                element.style.opacity = '1';
+            }
+        };
+        document.addEventListener('mouseup', mouseUpHandler);
+        window.cleanupListeners.push(() => document.removeEventListener('mouseup', mouseUpHandler));
+    }
+
+    // === Verificar si un punto está dentro de un polígono (se mantiene) ===
+    function isPointInPolygon(point, vertices) {
+        let x = point.x, y = point.y;
+        let inside = false;
+        for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+            let xi = vertices[i].x, yi = vertices[i].y;
+            let xj = vertices[j].x, yj = vertices[j].y;
+            let intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+
+    // === Formato Select2 (se mantienen) ===
+    function formatImageOption(opt) {
+        if (!opt.id) return opt.text;
+        const imgSrc = $(opt.element).data('img-src');
+        if (!imgSrc) return opt.text;
+        const $opt = $(`<span><img src="${imgSrc}" class="img-flag" style="width:40px;height:40px;margin-right:10px;object-fit:contain"/> ${opt.text}</span>`);
+        return $opt;
+    }
+
+    // Iniciar la página
+    initializePage(); 
+
+})(); // Fin de la función auto-ejecutable
+
+
+</script>

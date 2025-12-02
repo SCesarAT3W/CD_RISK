@@ -1,0 +1,75 @@
+<h2 class="mb-4 text-primary">Esquema de Protección</h2>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm text-center h-100">
+            <img src="https://via.placeholder.com/400x300?text=Instalaci%C3%B3n+aislada+sobre+m%C3%A1stil+aut%C3%B3nomo" class="img-fluid mb-3" alt="Instalación aislada sobre mástil autónomo">
+            <p class="fw-bold">Instalación aislada sobre mástil autónomo</p>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card p-3 shadow-sm text-center h-100">
+            <img src="https://via.placeholder.com/400x300?text=Instalaci%C3%B3n+sobre+el+edificio+a+proteger" class="img-fluid mb-3" alt="Instalación sobre el edificio a proteger">
+            <p class="fw-bold">Instalación sobre el edificio a proteger</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="form-group mb-3">
+            <label class="form-label fw-bold">SERIE</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="serie" id="datControllerPlus" value="DAT CONTROLLER® PLUS" checked>
+                <label class="form-check-label" for="datControllerPlus">
+                    DAT CONTROLLER® PLUS
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="serie" id="datControllerRemote" value="DAT CONTROLLER® REMOTE">
+                <label class="form-check-label" for="datControllerRemote">
+                    DAT CONTROLLER® REMOTE
+                </label>
+            </div>
+        </div>
+        <div class="form-group mb-3">
+            <label class="form-label fw-bold">MÁSTIL</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="mastil" id="mastil3m" value="3m" checked>
+                <label class="form-check-label" for="mastil3m">3m</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="mastil" id="mastil6m" value="6m">
+                <label class="form-check-label" for="mastil6m">6m</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="mastil" id="mastil8m" value="8m">
+                <label class="form-check-label" for="mastil8m">8m</label>
+            </div>
+        </div>
+        <div class="form-group mb-3">
+            <label for="cabezal" class="form-label fw-bold">Cabezal</label>
+            <input type="text" class="form-control" id="cabezal" placeholder="Ingrese cabezal">
+        </div>
+        <div class="form-group mb-3">
+            <label for="conductor" class="form-label fw-bold">CONDUCTOR</label>
+            <input type="text" class="form-control" id="conductor" value="Cable de cobre 50mm2 AT-050D" readonly>
+        </div>
+        <div class="form-group mb-3">
+            <label for="radio" class="form-label fw-bold">Radio</label>
+            <input type="text" class="form-control" id="radio" placeholder="Radio de protección">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h5 class="mb-3 text-primary">ESQUEMA DE PROTECCIÓN</h5>
+        <div class="border p-2 bg-light d-flex justify-content-center align-items-center" style="min-height: 400px;">
+            <img src="https://via.placeholder.com/450x350?text=Esquema+de+Protecci%C3%B3n+con+Mapa" class="img-fluid" alt="Esquema de Protección">
+        </div>
+        <p class="text-center mt-2 fw-bold">Escala 50m</p>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>

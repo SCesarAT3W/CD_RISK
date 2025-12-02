@@ -1,0 +1,665 @@
+<!-- 📌 IMPORTANTE: Este archivo debe cargarse con fetch() desde index.html -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css"> <!-- Tu estilo corporativo -->
+
+<div class="row">
+    <div class="col-md-5">
+        <h5 class="mb-3 text-primary">DETALLES DE LA PROTECCIÓN</h5>
+
+        <div class="form-group mb-3 row align-items-center">
+            <label for="buildingNameExt" class="col-sm-5 col-form-label fw-bold">Nombre del edificio</label>
+            <div class="col-sm-7">
+                <input type="text" class="form-control" id="buildingNameExt" value="EDIFICIO PRODUCCIÓN" readonly>
+            </div>
+        </div>
+
+        <div class="form-group mb-3 row align-items-center">
+            <div class="col-sm-5">
+                <button class="btn btn-primary" type="button" id="addPararrayosBtn">
+                    + Añadir Pararrayos
+                </button>
+            </div>
+
+            <div class="col-sm-7 text-primary d-flex align-items-center">
+                PARARRAYOS
+                <button class="btn btn-sm btn-outline-primary mx-2" type="button" onclick="previousPararrayos()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <input type="text" id="currentPararrayos" value="1" readonly
+                    class="form-control form-control-sm d-inline-block" style="width: 40px; text-align: center;">
+                <button class="btn btn-sm btn-outline-primary ms-2" type="button" onclick="nextPararrayos()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="border border-4 p-3 rounded">
+            <div class="form-group mb-2 row align-items-center">
+                <label for="height" class="col-sm-5 col-form-label fw-bold">Altura del edificio</label>
+                <div class="col-sm-7">
+                    <input type="text" class="form-control" id="height" value="20.00 m" readonly>
+                </div>
+            </div>
+
+            <hr class="my-1">
+
+            <h5 class="mb-3 text-primary">CAPTACIÓN</h5>
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-5 col-form-label fw-bold">Tipo de cabezal</p>
+                <div class="col-sm-7">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="serie" id="datControllerRemote"
+                            value="DAT CONTROLLER® REMOTE" checked>
+                        <label class="form-check-label" for="datControllerRemote">
+                            DAT CONTROLER® REMOTE
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="serie" id="datControllerPlus"
+                            value="DAT CONTROLLER® PLUS">
+                        <label class="form-check-label" for="datControllerPlus">
+                            DAT CONTROLER® PLUS
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group mb-2 row align-items-center">
+                <label for="cabezal" class="col-sm-5 col-form-label fw-bold">Modelo de cabezal</label>
+                <div class="col-sm-7">
+                    <select class="form-select" id="cabezal">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="DAT CONTROLER REMOTE 15">DAT CONTROLER REMOTE 15</option>
+                        <option value="DAT CONTROLER REMOTE 30">DAT CONTROLER REMOTE 30</option>
+                        <option value="DAT CONTROLER REMOTE 45">DAT CONTROLER REMOTE 45</option>
+                        <option value="DAT CONTROLER REMOTE 60">DAT CONTROLER REMOTE 60</option>
+                        <option value="DAT CONTROLER PLUS 15">DAT CONTROLER PLUS 15</option>
+                        <option value="DAT CONTROLER PLUS 30">DAT CONTROLER PLUS 30</option>
+                        <option value="DAT CONTROLER PLUS 45">DAT CONTROLER PLUS 45</option>
+                        <option value="DAT CONTROLER PLUS 60">DAT CONTROLER PLUS 60</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <label for="protectionRadius" class="col-sm-5 col-form-label fw-bold">Radio de Protección</label>
+                <div class="col-sm-7">
+                    <select class="form-select" id="protectionRadius">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                    </select>
+                </div>
+            </div>
+            <hr class="my-1">
+
+            <!-- MÁSTIL con imágenes -->
+            <div class="form-group mb-3 row align-items-center">
+                <label for="TipoMastil" class="col-md-5 col-form-label fw-bold">Tipo de mástil</label>
+                <div class="col-md-7">
+                    <select class="form-select select-with-images" id="TipoMastil">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="Mastil" data-img-src="images/products/AT-056A.JPG">Mástil</option>
+                        <option value="TCelosia" data-img-src="images/products/AT-031C_APLI.JPG">Torretas de celosía</option>
+                        <option value="MAutonomo" data-img-src="images/products/AT-090C_APLI.JPG">Mástil autónomo</option>
+                        <option value="TAutosoportada" data-img-src="images/products/AT-050C_APLI.JPG">Torre autosoportada</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group mb-3 row align-items-center">
+                <label for="mastilHeight" class="col-md-5 col-form-label fw-bold">Altura del mástil</label>
+                <div class="col-md-7">
+                    <select class="form-select" id="mastilHeight">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="3m">3m</option>
+                        <option value="6m">6m</option>
+                        <option value="8m">8m</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr class="my-1">
+
+            <!-- ANCLAJE con imágenes -->
+            <div class="form-group mb-3 row align-items-center">
+                <label for="anclajeTipo" class="col-md-5 col-form-label fw-bold">Tipo de anclaje</label>
+                <div class="col-md-7">
+                    <select class="form-select select-with-images" id="anclajeTipo">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="AEnU" data-img-src="images/products/AT-023B.JPG">Anclaje en U</option>
+                        <option value="ABAngulo" data-img-src="images/products/AT-038B.JPG">Barra en ángulo</option>
+                        <option value="ALigero" data-img-src="images/products/AT-042B.JPG">Ligero</option>
+                        <option value="EATPlano" data-img-src="images/products/AT-003B.JPG">Tejado plano</option>
+                        <option value="AAjustable" data-img-src="images/products/AT-078B_APLI.JPG">Ajustable</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group mb-3 row align-items-center">
+                <label for="anclajes" class="col-md-5 col-form-label fw-bold">Separación del anclaje</label>
+                <div class="col-md-7">
+                    <select class="form-select" id="anclajes">
+                        <option selected disabled>--Por favor, elige una opción--</option>
+                        <option value="15cm">15cm</option>
+                        <option value="30cm">30cm</option>
+                        <option value="60cm">60cm</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <h5 class="mb-3 text-primary">ESQUEMA DE PROTECCIÓN</h5>
+
+        <div class="d-flex align-items-center mb-3 flex-wrap">
+            <span class="fw me-2 text-nowrap">Plano</span>
+            <div class="btn-group me-2" role="group" aria-label="Herramientas de plano">
+                <button type="button" class="btn btn-secondary" title="Subir plano"><i class="fas fa-upload"></i></button>
+                <button type="button" class="btn btn-secondary" title="Mover plano"><i class="fas fa-up-down-left-right"></i></button>
+            </div>
+
+            <span class="fw me-2 text-nowrap">Edificio</span>
+            <div class="btn-group me-2" role="group" aria-label="Herramientas de área">
+                <button type="button" class="btn btn-secondary" title="Añadir área" onclick="startDrawingArea()">
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" title="Editar área" onclick="editCurrentArea()">
+                    <i class="fas fa-pen-to-square"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" title="Eliminar área" onclick="deleteCurrentArea()">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button type="button" class="btn btn-secondary" title="Duplicar área"><i class="fas fa-copy"></i></button>
+                <button type="button" class="btn btn-secondary" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                <button type="button" class="btn btn-secondary" title="Configuración"><i class="fas fa-cogs"></i></button>
+            </div>
+
+            <span class="fw me-2 text-nowrap">Pararrayos</span>
+            <div class="btn-group" role="group" aria-label="Herramientas de pararrayos">
+                <button type="button" class="btn btn-secondary" title="Regla"><i class="fas fa-ruler"></i></button>
+                <button type="button" class="btn btn-secondary" title="Calcular"><i class="fas fa-calculator"></i></button>
+                <button type="button" class="btn btn-secondary" title="Propiedades de pararrayos"><i class="fas fa-bolt"></i></button>
+                <button type="button" class="btn btn-secondary" title="Borrar pararrayos" onclick="deleteCurrentPararrayos()">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor del mapa -->
+        <div class="border border-warning border-3 bg-light position-relative" 
+             style="min-height: 500px;" 
+             id="mapContainer">
+            <img src="images/mapa_base.jpg" class="img-fluid w-100" alt="Esquema de Protección" style="height: auto;">
+            <div id="protectionZones"></div>
+            <div id="areaOverlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-center mt-3">
+            <button type="button" class="btn btn-sm btn-secondary me-2" title="Disminuir escala" onclick="zoomOut()">
+                <i class="fas fa-minus"></i>
+            </button>
+            <input type="range" class="form-range mx-2" min="10" max="200" value="100" id="scaleRange" style="width: 150px;" oninput="updateScaleText()">
+            <button type="button" class="btn btn-sm btn-secondary ms-2" title="Aumentar escala" onclick="zoomIn()">
+                <i class="fas fa-plus"></i>
+            </button>
+            <span class="ms-3 fw-bold" id="scaleText">Escala 50m</span>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>
+
+<!-- Estilos para el círculo -->
+<style>
+.protection-zone {
+    position: absolute;
+    border: 2px dashed #f7a800;
+    border-radius: 50%;
+    background-color: rgba(247, 168, 0, 0.25);
+    cursor: move;
+    user-select: none;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+}
+.protection-zone::after {
+    content: '⚡';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    color: #f7a800;
+    pointer-events: none;
+}
+</style>
+
+<!-- Modal corregido: NO inyectarlo si ya está en index.html -->
+<!-- ⚠️ Mueve este modal a tu index.html fuera de cualquier inyección -->
+<div class="modal fade" id="infoModal_area" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModalLabel">Información sobre el área</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Haz clic para definir los puntos del área. Doble clic para cerrar.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// === Calcular centroide del área ===
+function getCentroid(points) {
+    let x = 0, y = 0;
+    const n = points.length;
+    for (let i = 0; i < n; i++) {
+        x += points[i].x;
+        y += points[i].y;
+    }
+    return { x: x / n, y: y / n };
+}
+
+// === Datos oficiales por modelo y nivel ===
+const protectionRadii = {
+    'DAT CONTROLER PLUS 15': { I: 32, II: 38, III: 46, IV: 52 },
+    'DAT CONTROLER PLUS 30': { I: 48, II: 55, III: 64, IV: 72 },
+    'DAT CONTROLER PLUS 45': { I: 63, II: 71, III: 81, IV: 90 },
+    'DAT CONTROLER PLUS 60': { I: 79, II: 87, III: 97, IV: 107 },
+    'DAT CONTROLER REMOTE 15': { I: 32, II: 38, III: 46, IV: 52 },
+    'DAT CONTROLER REMOTE 30': { I: 48, II: 55, III: 64, IV: 72 },
+    'DAT CONTROLER REMOTE 45': { I: 63, II: 71, III: 81, IV: 90 },
+    'DAT CONTROLER REMOTE 60': { I: 79, II: 87, III: 97, IV: 107 }
+};
+
+// === Estado global ===
+let nextZoneId = 1;
+let currentPararrayosIndex = 1;
+const zones = [];
+
+// === Áreas dibujadas ===
+let isDrawingMode = false;
+let currentAreaPoints = [];
+let areas = []; // { id, points }
+
+// === Escala del mapa ===
+function getScaleFactor() {
+    return document.getElementById('scaleRange').value / 100;
+}
+
+function updateScaleText() {
+    const scale = document.getElementById('scaleRange').value;
+    const meters = Math.round(50 * (scale / 100));
+    document.getElementById('scaleText').textContent = `Escala ${meters}m`;
+    zones.forEach(updateZoneSize);
+}
+
+function zoomIn() {
+    const range = document.getElementById('scaleRange');
+    range.value = Math.min(200, parseInt(range.value) + 10);
+    updateScaleText();
+}
+
+function zoomOut() {
+    const range = document.getElementById('scaleRange');
+    range.value = Math.max(10, parseInt(range.value) - 10);
+    updateScaleText();
+}
+
+// === Navegación entre pararrayos ===
+window.previousPararrayos = function() {
+    if (currentPararrayosIndex > 1) {
+        currentPararrayosIndex--;
+        document.getElementById('currentPararrayos').value = currentPararrayosIndex;
+    }
+};
+
+window.nextPararrayos = function() {
+    if (currentPararrayosIndex < zones.length) {
+        currentPararrayosIndex++;
+        document.getElementById('currentPararrayos').value = currentPararrayosIndex;
+    }
+};
+
+// === Eliminar pararrayos ===
+window.deleteCurrentPararrayos = function() {
+    if (zones.length === 0) return;
+
+    const index = currentPararrayosIndex - 1;
+    if (index >= 0 && index < zones.length) {
+        zones[index].element.remove();
+        zones.splice(index, 1);
+
+        if (currentPararrayosIndex > zones.length) {
+            currentPararrayosIndex = Math.max(1, zones.length);
+        }
+        document.getElementById('currentPararrayos').value = currentPararrayosIndex;
+    }
+};
+
+// === Mostrar modal personalizado (seguro) ===
+function showModal(message) {
+    const modalElement = document.getElementById('infoModal_area');
+    const modalBody = modalElement.querySelector('.modal-body');
+    
+    if (modalBody) {
+        modalBody.textContent = message;
+    }
+
+    // Usa instancia segura de Bootstrap
+    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+    modal.show();
+
+    // Asegurar que no haya conflictos de foco
+    setTimeout(() => {
+        modalElement.setAttribute('aria-hidden', 'false');
+    }, 100);
+}
+
+// === Iniciar modo de dibujo ===
+function startDrawingArea() {
+    isDrawingMode = true;
+    currentAreaPoints = [];
+    const container = document.getElementById('mapContainer');
+    container.style.cursor = 'crosshair';
+    document.getElementById('areaOverlay').innerHTML = '';
+    showModal("Haz clic para definir los puntos del área. Doble clic para cerrar.");
+}
+
+// === Dibujar línea con div rotado ===
+function drawLine(p1, p2) {
+    const dx = p2.x - p1.x;
+    const dy = p2.y - p1.y;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    const line = document.createElement('div');
+    line.style.position = 'absolute';
+    line.style.width = length + 'px';
+    line.style.height = '3px';
+    line.style.backgroundColor = '#0d3b66';  // Azul oscuro
+    line.style.transformOrigin = '0 0';
+    line.style.left = p1.x + 'px';
+    line.style.top = p1.y + 'px';
+    line.style.transform = `rotate(${angle}deg)`;
+    line.style.pointerEvents = 'none';
+
+    document.getElementById('areaOverlay').appendChild(line);
+}
+
+// === Cerrar y guardar área ===
+function finishDrawing() {
+    if (currentAreaPoints.length < 3) {
+        showModal("Necesitas al menos 3 puntos para cerrar el área.");
+        return;
+    }
+
+    isDrawingMode = false;
+    document.getElementById('mapContainer').style.cursor = 'default';
+
+    const newArea = {
+        id: areas.length + 1,
+        points: [...currentAreaPoints]
+    };
+    areas.push(newArea);
+
+    showModal(`Área ${newArea.id} creada.`);
+}
+
+// === Editar última área ===
+function editCurrentArea() {
+    if (areas.length === 0) {
+        showModal("No hay áreas para editar.");
+        return;
+    }
+
+    const area = areas.pop();
+    document.getElementById('areaOverlay').innerHTML = '';
+    currentAreaPoints = [...area.points];
+    isDrawingMode = true;
+    document.getElementById('mapContainer').style.cursor = 'crosshair';
+    showModal("Modifica los puntos. Doble clic para guardar.");
+
+    for (let i = 1; i < currentAreaPoints.length; i++) {
+        drawLine(currentAreaPoints[i-1], currentAreaPoints[i]);
+    }
+}
+
+// === Eliminar última área ===
+function deleteCurrentArea() {
+    if (areas.length === 0) {
+        showModal("No hay áreas para eliminar.");
+        return;
+    }
+
+    const area = areas.pop();
+    document.getElementById('areaOverlay').innerHTML = '';
+    showModal(`Área eliminada.`);
+}
+
+// === Eventos de dibujo ===
+document.addEventListener('DOMContentLoaded', function () {
+    const mapContainer = document.getElementById('mapContainer');
+
+    // Click: añadir punto y dibujar línea
+    mapContainer.addEventListener('click', function(e) {
+        if (!isDrawingMode) return;
+
+        const rect = mapContainer.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const newPoint = { x, y };
+        currentAreaPoints.push(newPoint);
+
+        if (currentAreaPoints.length > 1) {
+            const lastPoint = currentAreaPoints[currentAreaPoints.length - 2];
+            drawLine(lastPoint, newPoint);
+        }
+    });
+
+    // Doble clic: cerrar área
+    mapContainer.addEventListener('dblclick', function(e) {
+        if (isDrawingMode) {
+            finishDrawing();
+        }
+    });
+
+    // Inicializar Select2
+    if (typeof $ !== 'undefined' && $('.select-with-images').length) {
+        $('.select-with-images').select2({
+            templateResult: formatImageOption,
+            templateSelection: formatImageOption
+        });
+    }
+
+    // Cargar radios iniciales
+    setTimeout(() => {
+        const event = new Event('change');
+        document.getElementById('cabezal').dispatchEvent(event);
+    }, 300);
+
+    updateScaleText();
+});
+
+// === Cargar radios según modelo ===
+document.getElementById('cabezal').addEventListener('change', function () {
+    const model = this.value.trim();
+    const select = document.getElementById('protectionRadius');
+    select.innerHTML = '<option selected disabled>--Por favor, elige una opción--</option>';
+
+    if (!model || !protectionRadii[model]) {
+        setTimeout(() => showModal("No se encontraron datos para este modelo."), 100);
+        return;
+    }
+
+    const r = protectionRadii[model];
+    ['I', 'II', 'III', 'IV'].forEach(level => {
+        const radius = r[level];
+        const opt = document.createElement('option');
+        opt.value = radius;
+        opt.textContent = `${radius}m a Nivel ${level}`;
+        select.appendChild(opt);
+    });
+
+    select.value = r.III;
+
+    const zoneObj = zones[currentPararrayosIndex - 1];
+    if (zoneObj) {
+        zoneObj.radiusM = r.III;
+        updateZoneSize.call(zoneObj);
+    }
+});
+
+// === Cambiar radio -> actualizar círculo ===
+document.getElementById('protectionRadius').addEventListener('change', function () {
+    const radiusM = parseFloat(this.value);
+    if (isNaN(radiusM)) return;
+
+    const zoneObj = zones[currentPararrayosIndex - 1];
+    if (zoneObj) {
+        zoneObj.radiusM = radiusM;
+        updateZoneSize.call(zoneObj);
+    }
+});
+
+// === Añadir pararrayos DENTRO DEL ÁREA ===
+document.getElementById('addPararrayosBtn').addEventListener('click', function () {
+    const radiusM = parseFloat(document.getElementById('protectionRadius').value);
+    if (!radiusM) {
+        showModal("Selecciona un radio de protección.");
+        return;
+    }
+
+    const container = document.getElementById('protectionZones');
+    const zone = document.createElement('div');
+    zone.className = 'protection-zone';
+    zone.id = 'zone-' + nextZoneId++;
+
+    const scaleFactor = getScaleFactor();
+    const diameterPx = radiusM * 4 * scaleFactor;
+
+    zone.style.width = diameterPx + 'px';
+    zone.style.height = diameterPx + 'px';
+
+    // Posicionar DENTRO del área
+    let posX = '50%';
+    let posY = '50%';
+    const radius = diameterPx / 2;
+
+    if (areas.length > 0) {
+        const lastArea = areas[areas.length - 1];
+        const centroid = getCentroid(lastArea.points);
+        const mapRect = mapContainer.getBoundingClientRect();
+
+        posX = Math.max(radius, Math.min(centroid.x, mapRect.width - radius)) + 'px';
+        posY = Math.max(radius, Math.min(centroid.y, mapRect.height - radius)) + 'px';
+    }
+
+    zone.style.left = posX;
+    zone.style.top = posY;
+
+    container.appendChild(zone);
+
+    const zoneObj = { element: zone, radiusM };
+    zones.push(zoneObj);
+    document.getElementById('currentPararrayos').value = zones.length;
+    currentPararrayosIndex = zones.length;
+
+    makeDraggable(zone);
+    updateZoneSize.call(zoneObj);
+});
+
+function updateZoneSize() {
+    if (!this.element) return;
+    const scaleFactor = getScaleFactor();
+    const diameterPx = this.radiusM * 4 * scaleFactor;
+    this.element.style.width = diameterPx + 'px';
+    this.element.style.height = diameterPx + 'px';
+}
+
+// === Hacer arrastrable con validación dentro del área ===
+function makeDraggable(element) {
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    element.addEventListener('mousedown', function(e) {
+        isDragging = true;
+        const rect = element.getBoundingClientRect();
+        offsetX = e.clientX - (rect.left + rect.width / 2);
+        offsetY = e.clientY - (rect.top + rect.height / 2);
+        element.style.opacity = '0.8';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+        const container = document.getElementById('mapContainer');
+        const rect = container.getBoundingClientRect();
+
+        let x = e.clientX - rect.left - offsetX;
+        let y = e.clientY - rect.top - offsetY;
+
+        const radius = element.offsetWidth / 2;
+        x = Math.max(radius, Math.min(x, rect.width - radius));
+        y = Math.max(radius, Math.min(y, rect.height - radius));
+
+        // Validar que esté dentro de alguna área
+        if (areas.length > 0) {
+            const isInside = areas.some(area => {
+                return isPointInPolygon({ x, y }, area.points);
+            });
+
+            if (!isInside) {
+                const lastValid = element.dataset.lastValidPos ? JSON.parse(element.dataset.lastValidPos) : { x, y };
+                x = lastValid.x;
+                y = lastValid.y;
+            } else {
+                element.dataset.lastValidPos = JSON.stringify({ x, y });
+            }
+        }
+
+        element.style.left = x + 'px';
+        element.style.top = y + 'px';
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isDragging) {
+            isDragging = false;
+            element.style.opacity = '1';
+        }
+    });
+}
+
+// === Verificar si un punto está dentro de un polígono ===
+function isPointInPolygon(point, vertices) {
+    let x = point.x, y = point.y;
+    let inside = false;
+    for (let i = 0, j = vertices.length - 1; i < vertices.length; j = i++) {
+        let xi = vertices[i].x, yi = vertices[i].y;
+        let xj = vertices[j].x, yj = vertices[j].y;
+        let intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+
+// === Formato Select2 ===
+function formatImageOption(opt) {
+    if (!opt.id) return opt.text;
+    const imgSrc = $(opt.element).data('img-src');
+    if (!imgSrc) return opt.text;
+    const $opt = $(`<span><img src="${imgSrc}" class="img-flag" style="width:40px;height:40px;margin-right:10px;object-fit:contain"/> ${opt.text}</span>`);
+    return $opt;
+}
+</script>

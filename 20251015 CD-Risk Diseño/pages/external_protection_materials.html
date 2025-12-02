@@ -1,0 +1,432 @@
+<h2 class="mb-4 text-primary">Materiales para protección externa</h2>
+
+<h5 class="mb-3 text-primary">DATOS DEL EDIFICIO</h5>
+<div class="row">
+    <div class="col-md-4">
+        <div class="form-group mb-3 row align-items-center">
+            <p class="col-sm-5 col-form-label fw-regular">Edificio</p>
+            <div class="col-sm-7">
+                <input type="text" class="form-control" id="buildingNameExt" value="EDIFICIO PRODUCCIÓN" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group mb-3 row align-items-center">
+            <p class="col-sm-6 col-form-label fw-regular">Altura del Edificio</p>
+            <div class="col-sm-6">
+                <input type="text" class="form-control" id="BuldHeightExt" value="20.00 m" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group mb-3 row align-items-center">
+            <p class="col-sm-6 col-form-label fw-regular">PARARRAYOS</p>
+            <div class="col-sm-6">
+                <button class="btn btn-sm btn-primary mx-2" type="button" onclick="previousPararrayos()">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <input type="text" id="currentPararrayos" value="1" readonly
+                    class="form-control form-control-sm d-inline-block" style="width: 40px; text-align: center;">
+                <button class="btn btn-sm btn-primary ms-2" type="button" onclick="nextPararrayos()">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="border border-2 p-3 rounded">
+
+    <h5 class="mb-3 text-primary">CAPTACIÓN</h5>
+    <div class="row">
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group mb-2 row align-items-center">
+                        <label for="cabezalExt" class="col-sm-5 col-form-label fw-regular">Cabezal captador</label>
+                        <div class="col-sm-7">
+                            <select class="form-select" id="cabezalExt">
+                                <option disabled>--Por favor, elige una opción--</option>
+                                <option value="DAT CONTROLER PLUS 15">DAT CONTROLER PLUS 15</option>
+                                <option value="DAT CONTROLER PLUS 15">DAT CONTROLER PLUS 30</option>
+                                <option value="DAT CONTROLER PLUS 45">DAT CONTROLER PLUS 45</option>
+                                <option value="DAT CONTROLER PLUS 60" selected>DAT CONTROLER REMOTE 60</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group mb-3 row align-items-center">
+                        <label for="protectionLevelExt" class="col-sm-5 col-form-label fw-regular">Nivel de
+                            protección</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="protectionLevelExt" value="Nivel III" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3 d-flex align-items-center justify-content-center">
+            <img src="images/products/AT-2560_ANCHO.JPG" alt="Captación" class="img-fluid" style="width: 80px; height: 80px;">
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row">
+        <div class="col-md-9">
+            <h5 class="mb-3 text-primary">BAJANTES</h5>
+
+            <div class="form-group mb-2 row align-items-center">
+                <label for="bajantesConductor" class="col-sm-7 col-form-label fw-regular">Tipo de conductor a
+                    presupuestar</label>
+                <div class="col-sm-5">
+                    <select class="form-select" id="bajantesConductor">
+                        <option selected>--Por favor, elige una opción--</option>
+                        <option value="Cable">Cable</option>
+                        <option value="Pletina">Pletina</option>
+                        <option value="Redondo">Redondo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <label for="bajantesType" class="col-sm-7 col-form-label fw-regular">Material del conductor a
+                    presupuestar</label>
+                <div class="col-sm-5">
+                    <select class="form-select" id="bajantesType">
+                        <option selected>--Por favor, elige una opción--</option>
+                        <option value="Cable">Cobre</option>
+                        <option value="Pletina">Aluminio</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <label for="fijacionesType" class="col-sm-7 col-form-label fw-regular">Tipo de fijaciones para el
+                    conductor</label>
+                <div class="col-sm-5">
+                    <select class="form-select" id="fijacionesType">
+                        <option selected>--Por favor, elige una opción--</option>
+                        <option value="Fijacion1">Grapa de latón a pared</option>
+                        <option value="Fijacion2">Grapa de latón a estructura</option>
+                        <option value="Fijacion1">Grapa de nylon</option>
+                        <option value="Fijacion2">Grapa ligera</option>
+                    </select>
+                </div>
+            </div>
+
+<div class="form-group mb-2 row align-items-center">
+    <p class="col-sm-7 col-form-label fw-regular">¿Se utilizarán bajantes de otros pararrayos como bajada?</p>
+    <div class="col-sm-5">
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="useOtherBajantes" id="otherBajantesYes"
+                value="Si" onchange="toggleBajantesFields()">
+            <label class="form-check-label" for="otherBajantesYes">Sí</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="useOtherBajantes" id="otherBajantesNo"
+                value="No" checked onchange="toggleBajantesFields()">
+            <label class="form-check-label" for="otherBajantesNo">No</label>
+        </div>
+    </div>
+</div>
+
+<div id="bajantesExtraFields" style="display: none;">
+    
+    <div class="form-group mb-2 row align-items-center">
+        <label for="metrosConductor" class="col-sm-7 col-form-label text-end">Introduzca número de metros de conductor a utilizar</label>
+        <div class="col-sm-5">
+            <input type="number" class="form-control d-inline-block w-auto" id="metrosConductor" min="0" value="0">
+        </div>
+    </div>
+
+    <div class="form-group mb-2 row align-items-center">
+        <label for="tipoCubierta" class="col-sm-7 col-form-label text-end">Tipo de cubierta</label>
+        <div class="col-sm-5">
+            <select class="form-select" id="tipoCubierta">
+                <option selected disabled>--Por favor, elige una opción--</option>
+                <option value="Pared">Pared</option>
+                <option value="Terraza">Terraza</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">¿Se utilizan componentes naturales como bajadas?</p>
+                <div class="col-sm-5">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="useNaturalComponents"
+                            id="naturalComponentsYes" value="Si">
+                        <label class="form-check-label" for="naturalComponentsYes">Sí</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="useNaturalComponents"
+                            id="naturalComponentsNo" value="No" checked>
+                        <label class="form-check-label" for="naturalComponentsNo">No</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">Indique el número de bajantes a presupuestar</p>
+                <div class="col-sm-5">
+                    <input type="number" class="form-control d-inline-block w-auto" id="bajantesNumber" value="2">
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">Recorrido horizontal total</p>
+                <div class="col-sm-5">
+                    <input type="text" class="form-control d-inline-block w-auto" id="totalLengthExt" value="10,00 m">
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <label for="distanceGroundLevel" class="col-sm-7 col-form-label fw-regular">Distancia entre las bajantes a
+                    nivel suelo</label>
+                <div class="col-sm-5">
+                    <input type="text" class="form-control d-inline-block w-auto" id="distanceGroundLevel"
+                        name="distanceGroundLevel" value="6.00 m">
+                </div>
+            </div>
+
+        <div class="form-group mb-2 row align-items-center">
+            <label for="distanceGroundLevelRange" class="col-sm-7 col-form-label fw-regular">¿Desea añadir un margen extra de
+                materiales?</label>
+            <div class="col-sm-5 d-flex align-items-center">
+                <input type="range" class="form-range" id="distanceGroundLevelRange" min="0" max="100" value="15">
+                <span class="ms-2" id="distanceGroundLevelValue">15%</span>
+            </div>
+        </div>
+        </div>
+        <div class="col-sm-3 d-flex align-items-center justify-content-center">
+            <img src="images/products/AT-010E_APLI.JPG" alt="Bajante" class="img-fluid" style="max-width: 60%; height: auto;">
+        </div>
+    </div>
+
+    <hr class="my-4">
+    <div class="row">
+        <div class="col-md-9">
+            <h5 class="mb-3 text-primary">TOMA DE TIERRA</h5>
+
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">Tipo de toma de tierra</p>
+                <div class="col-sm-5">
+                    <select class="form-select" id="TipodeTomadeTierra">
+                        <option selected>--Por favor, elige una opción--</option>
+                        <option value="Tierratriangulos">Disposición en triángulo</option>
+                        <option value="Tierraenlinea">Disposición en línea</option>
+                        <option value="Patadeganso">Pata de ganso</option>
+                        <option value="Patadeganso">En anillo</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">Material de toma de tierra</p>
+                <div class="col-sm-5">
+                    <select class="form-select" id="TipodeTomadeTierra2">
+                        <option selected>--Por favor, elige una opción--</option>
+                        <option value="ElectrodosCobrizados">Electrodos Cobrizados</option>
+                        <option value="PlacasdeTT">Placas de cobre</option>
+                        <option value="ElectrodosDinamicos">Electrodos dinámicos</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">¿La toma de tierra se unirá a la tierra general?</p>
+                <div class="col-sm-5">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="generalGround" id="generalGroundYes"
+                            value="Si">
+                        <label class="form-check-label" for="generalGroundYes">Sí</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="generalGround" id="generalGroundNo"
+                            value="No" checked>
+                        <label class="form-check-label" for="generalGroundNo">No</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">Conductor enterrado para unión a tierra general</p>
+                <div class="col-sm-5">
+                    <input type="number" class="form-control d-inline-block w-auto" id="generalGroundConductor"
+                        value="">
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3 d-flex align-items-center justify-content-center">
+            <img src="images/products/tomadetierra.jpg" alt="Toma de tierra" class="img-fluid" style="max-width: 100%; height: auto;">
+        </div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row">
+        <div class="col-md-9">
+            <h5 class="mb-3 text-primary mt-4">ANTENAS</h5>
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">Número de antenas en el tejado</p>
+                <div class="col-sm-5">
+                    <input type="number" class="form-control d-inline-block w-auto" id="antenasNumber" value="">
+                </div>
+            </div>
+            <div class="form-group mb-2 row align-items-center">
+                <p class="col-sm-7 col-form-label fw-regular">Conductor para unir las antenas a la bajante</p>
+                <div class="col-sm-5">
+                    <input type="text" class="form-control d-inline-block w-auto" id="antenasNumberM" value="0,00m">
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3 d-flex align-items-center justify-content-center">
+            <img src="images/products/AT-060F_APLICACIÓN_V2.JPG" alt="Via de chispas" class="img-fluid" style="max-width: 60%; height: auto;">
+        </div>
+    </div>
+</div>
+
+<br>
+<div class="row">
+ 
+    <div class="col-md-6">
+        <button class="btn btn-primary mb-1" onclick="calculateMaterials()"><i class="fa-solid fa-calculator me-3"></i>Calcular los materiales</button>
+    </div>
+</div>
+
+<div id="materialsCalculatedTable" class="border border-4 p-3 rounded d-none">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ref.</th>
+                <th>Materiales</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>AT-1560</td>
+                <td>DAT CONTROLER® REMOTE 60</td>
+                <td>1,00</td>
+            </tr>
+            <tr>
+                <td>AT-010A</td>
+                <td>Pieza adaptación, latón, para mástil PVC o cable o pletina</td>
+                <td>1,00</td>
+            </tr>            
+            <tr>
+                <td>AT-056A</td>
+                <td>Mástil de Ø60 x 6m, galvanizado (2 tramos)</td>
+                <td>1,00</td>
+            </tr>
+            <tr>
+                <td>AT-023B</td>
+                <td>Anclaje en U 30cm atornillable (2 sop.), galvanizado</td>
+                <td>1,00</td>
+            </tr>
+
+            <tr>
+                <td>AT-184E</td>
+                <td>Soporte cónico esmaltado de 30 a 2mm</td>
+                <td>1,00</td>
+            </tr>
+            <tr>
+                <td>AT-052D</td>
+                <td>Pletina de cobre para cable o pletina (lleno)</td>
+                <td>56,00</td>
+            </tr>
+            <tr>
+                <td>AT-240E</td>
+                <td>Grapa helice de inox para pletina</td>
+                <td>72,00</td>
+            </tr>
+            <tr>
+                <td>AT-034G</td>
+                <td>Contador electromecánico de rayos</td>
+                <td>1,00</td>
+            </tr>
+            <tr>
+                <td>AT-060G</td>
+                <td>Tubo de protección de acero galvanizado de 2m para pletina</td>
+                <td>2,00</td>
+            </tr>
+            <tr>
+                <td>AT-010H</td>
+                <td>Arqueta de polipropileno 250x250x300mm</td>
+                <td>1,00</td>
+            </tr>            
+            <tr>
+                <td>AT-020H</td>
+                <td>Puente de comprobación de latón para arqueta</td>
+                <td>2,00</td>
+            </tr>
+            <tr>
+                <td>AT-055H</td>
+                <td>Conjunto de piquetas con manguito AT-090H</td>
+                <td>2,00</td>
+            </tr>
+            <tr>
+                <td>AT-050K</td>
+                <td>Vía de chispas para unión de tierras</td>
+                <td>2,00</td>
+            </tr>
+            <tr>
+                <td>AT-020F</td>
+                <td>Manguito cuadrado de latón para cable y pletina</td>
+                <td>2,00</td>
+            </tr>
+            <tr>
+                <td>AT-060F</td>
+                <td>Vía de chispas para mástil de antena</td>
+                <td>1,00</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>
+
+<script>
+// --- TU FUNCIÓN ORIGINAL ---
+function calculateMaterials() {
+    const materialsTable = document.getElementById('materialsCalculatedTable');
+    if (materialsTable) {
+        materialsTable.classList.remove('d-none'); // Elimina la clase 'd-none' para mostrar la tabla
+    }
+}
+
+// --- NUEVA LÓGICA PARA BAJANTES ---
+/**
+ * Muestra u oculta el bloque de campos adicionales ('bajantesExtraFields') 
+ * basándose en la selección del radio button 'useOtherBajantes'.
+ */
+function toggleBajantesFields() {
+    // 1. Obtenemos el elemento a mostrar/ocultar
+    const extraFields = document.getElementById('bajantesExtraFields');
+    
+    // 2. Obtenemos el valor del radio button seleccionado (Si o No)
+    // Usamos querySelector para encontrar el radio button que está :checked
+    const selectedRadio = document.querySelector('input[name="useOtherBajantes"]:checked');
+
+    if (extraFields && selectedRadio) {
+        // La condición para MOSTRAR los campos es si se seleccionó "Sí"
+        if (selectedRadio.value === 'Si') {
+            extraFields.style.display = 'block'; // Mostrar
+        } else {
+            // Si es "No", los ocultamos
+            extraFields.style.display = 'none'; // Ocultar
+        }
+    }
+}
+
+// --- INICIALIZACIÓN ---
+// Ejecutamos la función al cargar la página para asegurar que el estado inicial sea correcto 
+// (oculto, ya que 'No' está seleccionado por defecto en el HTML).
+document.addEventListener('DOMContentLoaded', toggleBajantesFields);
+</script>

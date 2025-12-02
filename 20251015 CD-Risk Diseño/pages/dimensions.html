@@ -1,0 +1,277 @@
+<div class="row">
+
+    <div class="col-md-6">
+        <h5 class="mb-3 text-primary">DIMENSIONES</h5>
+
+        <div class="row">
+            <div class="col-md-7">
+
+                <div class="form-group mb-2 row align-items-center">
+                    <label for="length" class="col-sm-7 col-form-label fw-regular">Longitud (L)</label>
+                    <div class="col-sm-5 d-flex align-items-center">
+                        <input type="number" class="form-control form-control-sm" id="length" value="80.00"
+                            style="max-width: 120px;">
+                        <span class="ms-2">m.</span>
+                    </div>
+                </div>
+                <div class="form-group mb-2 row align-items-center">
+                    <label for="width" class="col-sm-7 col-form-label fw-regular">Anchura (W)</label>
+                    <div class="col-sm-5 d-flex align-items-center">
+                        <input type="number" class="form-control form-control-sm" id="width" value="50.00"
+                            style="max-width: 120px;">
+                        <span class="ms-2">m.</span>
+                    </div>
+                </div>
+                <div class="form-group mb-2 row align-items-center">
+                    <label for="height" class="col-sm-7 col-form-label fw-regular">Altura tejado (H)</label>
+                    <div class="col-sm-5 d-flex align-items-center">
+                        <input type="number" class="form-control form-control-sm" id="height" value="20.00"
+                            style="max-width: 120px;">
+                        <span class="ms-2">m.</span>
+                    </div>
+                </div>
+                <div class="form-group mb-2 row align-items-center">
+                    <label for="protrusionHeight" class="col-sm-7 col-form-label fw-regular">Altura prominencia
+                        (Hp)</label>
+                    <div class="col-sm-5 d-flex align-items-center">
+                        <input type="number" class="form-control form-control-sm" id="protrusionHeight" value="20.00"
+                            style="max-width: 120px;">
+                        <span class="ms-2">m.</span>
+                    </div>
+                </div>
+                <div class="form-group mb-2 row align-items-center">
+                    <label for="calculatedCollectionArea" class="col-sm-7 col-form-label fw-regular">Área de colección (Ad)
+                        <span class="info-icon ms-1" data-bs-toggle="modal" data-bs-target="#infoModal_Área_colección">
+                            <i class="fas fa-info-circle"></i>
+                        </span>
+                    </label>
+                    <div class="col-sm-5 d-flex align-items-center">
+                        <input type="text" class="form-control form-control-sm" id="calculatedCollectionArea"
+                            value="30.909,73" readonly style="max-width: 120px;">
+                        <span class="ms-2">m².</span>
+                    </div>
+                </div>
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="manualArea" checked>
+                    <label class="form-check-label" for="manualArea">
+                        Fijada manualmente
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-5 d-flex align-items-center justify-content-center"> <img src="images\edificio.jpg"
+                    alt="Esquema de Medida" class="img-fluid rounded">
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="col-md-6">
+        <h5 class="mb-3 text-primary">CARACTERÍSTICAS DE LA ESTRUCTURA</h5>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="typeOfStructure" class="col-sm-5 col-form-label fw-regular">Tipo de estructura
+                <span class="info-icon ms-1" data-bs-toggle="modal" data-bs-target="#infoModal_Tipo_estructura">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+            </label>
+            <div class="col-sm-7">
+                <select class="form-select" id="typeOfStructure">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="Hormigon" selected>B. Hormigón.</option>
+                    <option value="Metal">Metal</option>
+                    <option value="Madera">Madera</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="riskOfFire" class="col-sm-5 col-form-label fw-regular">Riesgo de incendio
+                <span class="info-icon ms-1" data-bs-toggle="modal" data-bs-target="#infoModal_Riesgo_incendio">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+            </label>
+            <div class="col-sm-7">
+                <select class="form-select" id="riskOfFire">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="Comun" selected>B. Común.</option>
+                    <option value="Alto">Alto</option>
+                    <option value="Nulo">Nulo</option>
+                </select>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h5 class="mb-3 text-primary mt-4">INFLUENCIAS AMBIENTALES</h5>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="situation" class="col-sm-5 col-form-label fw-regular">Situación
+                <span class="info-icon ms-1" data-bs-toggle="modal" data-bs-target="#infoModal_Situación">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+            </label>
+            <div class="col-sm-7">
+                <select class="form-select" id="situation">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="EstructuraAislada" selected>C. Estructura aislada.</option>
+                    <option value="CentroUrbano">Centro Urbano</option>
+                    <option value="ZonaRural">Zona Rural</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="environmentalFactor" class="col-sm-5 col-form-label fw-regular">Factor ambiental
+                <span class="info-icon ms-1" data-bs-toggle="modal" data-bs-target="#infoModal_Factor_ambiental">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+            </label>
+            <div class="col-sm-7">
+                <select class="form-select" id="environmentalFactor">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="Urbano" selected>B. Urbano.</option>
+                    <option value="Rural">Rural</option>
+                    <option value="Costero">Costero</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="stormDays" class="col-sm-5 col-form-label fw-regular">Días de tormenta</label>
+            <div class="col-sm-7">
+                <input type="number" class="form-control" id="stormDays" value="10" readonly>
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="annualImpactDensity" class="col-sm-5 col-form-label fw-regular">Densidad anual impactos</label>
+            <div class="col-sm-7">
+                <input type="number" class="form-control" id="annualImpactDensity" value="1.00" readonly>
+            </div>
+        </div>
+        <div class="form-group mb-2 row align-items-center">
+            <label for="groundType" class="col-sm-5 col-form-label fw-regular">Tipo de terreno
+                <span class="info-icon ms-1" data-bs-toggle="modal" data-bs-target="#infoModal_Tipo_terreno">
+                    <i class="fas fa-info-circle"></i>
+                </span>
+            </label>
+            <div class="col-sm-7">
+                <select class="form-select" id="groundType">
+                    <option disabled>--Por favor, elige una opción--</option>
+                    <option value="Arenoso" selected>B. Arenoso.</option>
+                    <option value="Rocoso">Rocoso</option>
+                    <option value="Arcilloso">Arcilloso</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>
+
+<div class="modal fade" id="infoModal_Área_colección" tabindex="-1" aria-labelledby="infoModal_Área_colección_Label"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModal_Área_colección_Label">Información sobre Área de colección (Ad)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Introducir el texto que aparece en el CD-Risk de ayuda para cualquier apartado que consideremos que
+                tiene que tener una ayuda, que sea útil para la persona que esté rellenando los datos.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="infoModal_Tipo_estructura" tabindex="-1" aria-labelledby="infoModal_Tipo_estructura_Label"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModal_Tipo_estructura_Label">Información sobre Tipo de estructura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Introducir el texto que aparece en el CD-Risk de ayuda para cualquier apartado que consideremos que
+                tiene que tener una ayuda, que sea útil para la persona que esté rellenando los datos.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="infoModal_Riesgo_incendio" tabindex="-1" aria-labelledby="infoModal_Riesgo_incendio_Label"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModal_Riesgo_incendio_Label">Información sobre Riesgo de incendio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Introducir el texto que aparece en el CD-Risk de ayuda para cualquier apartado que consideremos que
+                tiene que tener una ayuda, que sea útil para la persona que esté rellenando los datos.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="infoModal_Situación" tabindex="-1" aria-labelledby="infoModal_Situación_Label"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModal_Situación_Label">Información sobre Situación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Introducir el texto que aparece en el CD-Risk de ayuda para cualquier apartado que consideremos que
+                tiene que tener una ayuda, que sea útil para la persona que esté rellenando los datos.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="infoModal_Factor_ambiental" tabindex="-1" aria-labelledby="infoModal_Factor_ambiental_Label"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModal_Factor_ambiental_Label">Información sobre Factor ambiental</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Introducir el texto que aparece en el CD-Risk de ayuda para cualquier apartado que consideremos que
+                tiene que tener una ayuda, que sea útil para la persona que esté rellenando los datos.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="infoModal_Tipo_terreno" tabindex="-1" aria-labelledby="infoModal_Tipo_terreno_Label"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="infoModal_Tipo_terreno_Label">Información sobre Tipo de terreno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Introducir el texto que aparece en el CD-Risk de ayuda para cualquier apartado que consideremos que
+                tiene que tener una ayuda, que sea útil para la persona que esté rellenando los datos.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

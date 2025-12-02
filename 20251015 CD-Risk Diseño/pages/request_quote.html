@@ -1,0 +1,273 @@
+<h2 class="mb-4 text-primary">Resumen y Documentación del Proyecto</h2>
+
+<div class="row d-flex align-items-stretch">
+    <div class="col-md-6">
+        <div class="card p-4 mb-4 shadow-sm h-100">
+            <h5 class="mb-3 text-primary">RESUMEN DEL PROYECTO</h5>
+            <p class="presupuesto-text text-secondary small">Aquí mostrará un resumen de los datos principales y los resultados clave del proyecto.</p>
+            <ul class="list-group list-group-flush mt-3">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Nombre del edificio: <span class="fw-bold">EDIFICIO PRODUCCIÓN</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Dirección: <span class="fw-bold">AVENIDA DE LA INDUSTRIA 32 (PATERNA)</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Tipo de Instalación: <span class="fw-bold">Instalación sobre el edificio a proteger</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Altura del Edificio: <span class="fw-bold">20.00 m</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Cantidad de instalaciones: <span class="fw-bold">1</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    Nº de Bajantes: <span class="fw-bold">2</span>
+                </li>
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    Materiales Externos Estimados:
+    <button class="btn btn-sm btn-outline-primary"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#materialsModal"
+            style="--bs-btn-color: #243469; --bs-btn-border-color: #243469;">
+        <i class="fas fa-eye me-2"></i> Ver listado detallado
+    </button>
+</li>
+<li class="list-group-item d-flex justify-content-between align-items-center">
+    Materiales Internos Estimados:
+    <button class="btn btn-sm btn-outline-primary"
+            type="button"
+            data-bs-toggle="modal"
+            data-bs-target="#internalMaterialsModal"
+            style="--bs-btn-color: #243469; --bs-btn-border-color: #243469;">
+        <i class="fas fa-eye me-2"></i> Ver listado detallado
+    </button>
+</li>
+            </ul>
+            
+            <p class="presupuesto-text text-secondary small mt-3">Estos datos son una estimación inicial. Para un cálculo preciso, genere el informe completo.</p>
+        </div>
+    </div>
+
+    <div class="col-md-6 d-flex flex-column">
+        <div class="card p-4 mb-4 shadow-sm">
+            <h5 class="mb-3 text-primary">DATOS NORMATIVOS</h5>
+            <p class="presupuesto-text text-secondary small">Principales normativas y estándares aplicados:</p>
+            <ul class="list-group list-group-flush mt-3">
+                <li class="list-group-item">
+                    Normativa aplicada: <span class="fw-bold">UNE 21186:2011</span>
+                </li>
+                <li class="list-group-item">
+                    Nivel de protección: <span class="fw-bold">Nivel III</span>
+                </li>                
+                <li class="list-group-item">
+                    Clase de SPD necesaria: <span class="fw-bold">Protección coordinada</span>
+                </li>                
+            </ul>
+            <p class="presupuesto-text text-secondary small mt-3">Para detalles completos, consulte la documentación generada.</p>
+        </div>
+
+        <div class="card p-4 mb-4 shadow-sm flex-grow-1">
+            <h5 class="mb-3 text-primary">GENERAR Y DESCARGAR DOCUMENTACIÓN</h5>
+            <div class="d-grid gap-2">
+                <a href="250813 ISABELLA BAZZI.pdf" download class="d-grid d-block"></a>
+                    <button class=" btn-generar-pdf btn btn-primary btn-md">
+                        <i class="fas fa-file-alt me-2"></i> Generar Documentación (PDF)
+                    </button>
+                </a>
+                <button class="btn-descargar-estudio btn btn-info btn-md"><i class="fas fa-download me-2"></i> Descargar Estudio / Proyecto</button>
+                <button class="btn-descargar-fichas-tec btn btn-success btn-md"><i class="fas fa-file-invoice me-2"></i> Descargar Fichas Técnicas</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row d-flex align-items-stretch mt-5">
+    <div class="col-md-6">
+        <div class="card p-4 mb-4 shadow-sm h-100">
+            <h5 class="mb-3 text-primary">Datos de Contacto</h5>
+            <div class="form-group mb-3">
+                <label for="confirmedName" class="form-label fw-bold">Nombre</label>
+                <input type="text" class="form-control" id="confirmedName" value="[Nombre del Usuario]" readonly>
+            </div>
+            <div class="form-group mb-3">
+                <label for="confirmedEmail" class="form-label fw-bold">Correo Electrónico</label>
+                <input type="email" class="form-control" id="confirmedEmail" value="[correo.usuario@ejemplo.com]" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-4 mb-4 shadow-sm h-100">
+            <h5 class="mb-3 text-primary">Verificación y Consentimiento</h5>
+            <div class="form-group mb-3">
+                <h5 class="mb-2 text-primary">Verificación de Seguridad</h5>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="captchaCheck">
+                    <label class="form-check-label" for="captchaCheck">
+                        No soy un robot <i class="fas fa-robot ms-2"></i>
+                    </label>
+                </div>
+            </div>
+            <div class="form-check mb-3 mt-4">
+                <input class="form-check-input" type="checkbox" id="termsConsent" required>
+                <label class="form-check-label small" for="termsConsent">
+                    Acepto los <a href="#" class="text-primary text-decoration-none">términos y condiciones</a> y la <a href="#" class="text-primary text-decoration-none">política de privacidad</a>.
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-primary" onclick="window.location.href='index.html'">Finalizar Proceso / Ir a Inicio</button>
+</div>
+
+<div class="modal fade" id="materialsModal" tabindex="-1" aria-labelledby="materialsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="materialsModalLabel">Listado Detallado de Materiales Externos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="materialsCalculatedTable" class="p-0">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Ref.</th>
+                                <th>Materiales</th>
+                                <th>Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AT-1560</td>
+                                <td>DAT CONTROLLER® REMOTE 60</td>
+                                <td>1,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-010A</td>
+                                <td>Pieza adaptación, latón, para mástil PVC o cable o pletina</td>
+                                <td>1,00</td>
+                            </tr>		
+                            <tr>
+                                <td>AT-056A</td>
+                                <td>Mástil de Ø60 x 6m, galvanizado (2 tramos)</td>
+                                <td>1,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-023B</td>
+                                <td>Anclaje en U 30cm atornillable (2 sop.), galvanizado</td>
+                                <td>1,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-184E</td>
+                                <td>Soporte cónico esmaltado de 30 a 2mm</td>
+                                <td>1,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-052D</td>
+                                <td>Pletina de cobre para cable o pletina (lleno)</td>
+                                <td>56,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-240E</td>
+                                <td>Grapa helice de inox para pletina</td>
+                                <td>72,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-034G</td>
+                                <td>Contador electromecánico de rayos</td>
+                                <td>1,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-060G</td>
+                                <td>**Calha de protección** de acero galvanizado de 2m para pletina</td>
+                                <td>2,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-010H</td>
+                                <td>Arqueta de polipropileno 250x250x300mm</td>
+                                <td>1,00</td>
+                            </tr>		
+                            <tr>
+                                <td>AT-020H</td>
+                                <td>Puente de comprobación de latón para arqueta</td>
+                                <td>2,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-055H</td>
+                                <td>Conjunto de piquetas con manguito AT-090H</td>
+                                <td>2,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-050K</td>
+                                <td>Vía de chispas para unión de tierras</td>
+                                <td>2,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-020F</td>
+                                <td>Manguito cuadrado de latón para cable y pletina</td>
+                                <td>2,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-060F</td>
+                                <td>Vía de chispas para mástil de antena</td>
+                                <td>1,00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="internalMaterialsModal" tabindex="-1" aria-labelledby="internalMaterialsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="internalMaterialsModalLabel">Listado Detallado de Materiales Internos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="materialsCalculatedTableInternal" class="p-0"> 
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Ref.</th>
+                                <th>Materiales</th>
+                                <th>Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>AT-B036</td>
+                                <td>ATSUB-4P-NR-65TT. Imax 65kA. Up=230V</td>
+                                <td>1,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-9079</td>
+                                <td>IGA TEST I 125 D</td>
+                                <td>1,00</td>
+                            </tr>
+                            <tr>
+                                <td>AT-9200</td>
+                                <td>ATSUB-DM IIDN. Imax=15kA. Up=1,5kV. 2P</td>
+                                <td>2,00</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

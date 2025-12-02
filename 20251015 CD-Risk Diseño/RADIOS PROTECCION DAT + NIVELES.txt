@@ -1,0 +1,47 @@
+Modelo: DAT CONTROLER® PLUS 15
+- Nivel I: 32m
+- Nivel II: 38m
+- Nivel III: 46m
+- Nivel IV: 52m
+
+Modelo: DAT CONTROLER® PLUS 30
+- Nivel I: 48m
+- Nivel II: 55m
+- Nivel III: 64m
+- Nivel IV: 72m
+
+Modelo: DAT CONTROLER® PLUS 45
+- Nivel I: 6063m
+- Nivel II: 71m
+- Nivel III: 81m
+- Nivel IV: 90m
+
+Modelo: DAT CONTROLER® PLUS 60
+- Nivel I: 79m
+- Nivel II: 87m
+- Nivel III: 97m
+- Nivel IV: 107m
+
+Modelo: DAT CONTROLER® REMOTE 15
+- Nivel I: 32m
+- Nivel II: 38m
+- Nivel III: 46m
+- Nivel IV: 52m
+
+Modelo: DAT CONTROLER® REMOTE 30
+- Nivel I: 48m
+- Nivel II: 55m
+- Nivel III: 64m
+- Nivel IV: 72m
+
+Modelo: DAT CONTROLER® REMOTE 45
+- Nivel I: 63m
+- Nivel II: 71m
+- Nivel III: 81m
+- Nivel IV: 90m
+
+Modelo: DAT CONTROLER® REMOTE 60
+- Nivel I: 79m
+- Nivel II: 87m
+- Nivel III: 97m
+- Nivel IV: 107m

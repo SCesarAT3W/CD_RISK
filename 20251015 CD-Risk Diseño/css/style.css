@@ -1,0 +1,361 @@
+/* Estilos Generales */
+body {
+    font-family: Open Sans, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; /* Fuente similar a la de los bocetos */
+    background-color: #f8f9fa; /* Color de fondo claro */
+}
+
+.btn-group .btn {
+  border-radius: 6px !important;
+  padding: 5px 8px;
+  font-size: 13px;
+  background-color: #243469;
+  margin-right: 5px;
+}
+
+#btn-blank-grid {
+    background-color: #243469;
+}
+
+
+/* Header */
+.main-header {
+    background-color: #243469; /* Azul corporativo */
+    color: white;
+}
+
+.main-header .logo img {
+    /* Ajustar si el logo no se ve bien, ya hemos puesto height en el HTML */
+    height: auto; /* Esta es una declaración válida y a menudo es el valor por defecto */
+}
+
+.main-header .nav-link {
+    color: white !important; /* Asegurar que los enlaces sean blancos */
+    font-weight: 400;
+    transition: color 0.3s ease;
+}
+
+.main-header .nav-link:hover {
+    color: #f7a800 !important; /* Amarillo corporativo para hover */
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background-color: #e9ecef;
+    padding: 0.75rem 1rem;
+    border-radius: 0.25rem;
+}
+
+.breadcrumb-item a {
+    color: #243469; /* Azul corporativo */
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+}
+
+/* Stepper (Wizard) */
+.stepper-wrapper {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+    padding: 0 1rem; /* Pequeño padding para los bordes */
+}
+
+.stepper-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 20px; /* Ajustado para alinear con el centro de stepper-counter (40px de alto, centro a 20px) */
+    left: 1rem;
+    right: 1rem;
+    height: 2px;
+    background-color: #e0e0e0; /* Color de la línea inactiva */
+    z-index: 0;
+}
+
+.stepper-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 1; /* Para que el contenido esté sobre la línea */
+    flex: 1; /* Distribuye el espacio uniformemente */
+    min-width: 0; /* Permite que los elementos se encojan */
+    text-align: center;
+    cursor: pointer; /* Añadido: Cambia el cursor a una mano al pasar por encima*/
+}
+
+.stepper-counter {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #e0e0e0;
+    color: #888;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.stepper-title {
+    font-size: 0.9rem;
+    color: #888;
+    font-weight: 400;
+    white-space: nowrap; /* Evita que el texto se rompa */
+    overflow: hidden; /* Oculta el exceso si hay mucho texto */
+    text-overflow: ellipsis; /* Añade puntos suspensivos si se corta */
+    max-width: 100%; /* Asegura que el título no desborde */
+    transition: color 0.3s ease;
+}
+
+.stepper-item.active .stepper-counter {
+    background-color: #f7a800; /* Amarillo corporativo para el paso activo */
+    color: #243469; /* Azul corporativo para texto en el paso activo */
+    border-color: #f7a800;
+}
+
+.stepper-item.active .stepper-title {
+    color: #243469; /* Azul corporativo para el título activo */
+    font-weight: bold;
+}
+
+/* Línea de conexión entre pasos activos */
+.stepper-item.active + .stepper-item::before {
+    background-color: #f7a800; /* Amarillo corporativo para la línea de conexión activa */
+}
+
+/* Opcional: Si quieres que el círculo y la línea de los pasos completados también cambien de color */
+.stepper-item.completed .stepper-counter {
+    background-color: #243469; /* Azul corporativo para completado */
+    color: white;
+    border-color: #243469;
+}
+
+.stepper-item.completed .stepper-title {
+    color: #243469; /* Azul corporativo para el título del paso completado */
+}
+
+/* Estilos de botones Previous/Next */
+.btn-orange {
+    background-color: #243469; /* Azul corporativo */
+    color: #ffffff;
+    font-weight: 500;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-orange:hover {
+    background-color: #141929; /* Otro azul corporativo al pasar el ratón */
+    color: #ffffff; /* Azul corporativo */
+}
+
+/* Footer */
+.main-footer {
+    background-color: #243469; /* Azul corporativo */
+    color: rgba(255, 255, 255, 0.5); /* Blanco con 50% de opacidad */
+    font-size: 0.8rem;
+   
+}
+
+.main-footer a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.main-footer a:hover {
+    color: white;
+}
+
+.main-footer .fab {
+    color: rgba(255, 255, 255, 0.5);
+    transition: color 0.3s ease;
+}
+
+.main-footer .fab:hover {
+    color: white;
+}
+
+/* Responsive adjustments for stepper */
+@media (max-width: 768px) {
+    .stepper-title {
+        font-size: 0.75rem; /* Reduce font size on smaller screens */
+    }
+    .stepper-counter {
+        width: 30px;
+        height: 30px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .stepper-wrapper {
+        flex-wrap: wrap; /* Permite que los elementos se envuelvan */
+        justify-content: center;
+    }
+    .stepper-item {
+        flex-basis: 50%; /* Dos columnas por ejemplo */
+        margin-bottom: 1rem;
+    }
+    .stepper-wrapper::before {
+        display: none; /* Oculta la línea conectora en pantallas muy pequeñas si no se puede envolver bien */
+    }
+} /* <--- ¡LA LLAVE EXTRA HA SIDO ELIMINADA! */
+
+
+/* Nueva clase para el fondo azul corporativo */
+.bg-corporate-blue {
+    background-color: #243469 !important; /* Tu azul corporativo */
+}
+
+/* Se elimina la redefinición de bg-success para que use el verde por defecto de Bootstrap */
+
+/* Colores de texto personalizados (se mantienen) */
+.text-primary {
+    color: #243469 !important; /* Azul corporativo */
+    font-weight: 600;
+   
+}
+
+.text-secondary {
+    font-weight: 400;
+    font-size: 20px;
+}
+
+.losses-text {
+    font-size: 20px !important;
+}
+
+.presupuesto-text {
+    font-size: 15px !important;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background-color: #243469 !important; /* Tu azul corporativo */
+    color: #ffffff !important;
+}
+
+/* Botones página Solicitar Presupuesto*/
+.btn-generar-pdf {
+    border: none;
+}
+.btn-generar-pdf:hover {
+    background-color: #151933 !important;
+}
+
+.btn-descargar-estudio {
+background-color: #f7a800;
+border: none; 
+}
+.btn-descargar-estudio:hover {
+background-color: #dc9c13;
+}
+
+.btn-descargar-fichas-tec {
+    background-color: #151933;
+}
+.btn-descargar-fichas-tec:hover {
+    background-color: #030407;
+}
+
+/* Estilo para campos de entrada readonly */
+input[readonly] {
+    background-color: #f2f2f2;
+    /* Opcional: puedes ajustar el color del texto si el fondo lo hace difícil de leer */
+    /* color: #ffffff; */
+}
+/* Estilo para campos de entrada editables */
+input:not([readonly]) {
+    background-color: #ffffff; /* Fondo blanco (o el color que prefieras) */
+    color: #000000;            /* Texto negro para buena legibilidad */
+    border: 1px solid #d9d9d9;    /* Borde sutil (opcional, para mejor apariencia) */
+}
+
+/* --- Estilos Añadidos para Select2 con Imágenes --- */
+
+/* Custom styles for Select2 images */
+.select2-container .select2-selection__rendered img.img-flag,
+.select2-results__option img.img-flag {
+    width: 40px;
+    height: 40px;
+    /* vertical-align: middle; - REMOVED */
+    margin-right: 10px;
+    flex-shrink: 0;
+    object-fit: contain;
+}
+
+/* Ensure the Select2 options display flex to align image and text */
+.select2-results__option {
+    display: flex !important;
+    align-items: center;
+    min-height: 60px !important; /* Increased height and added !important */
+    font-size: 0.9rem; /* Added: Smaller font size for options text */
+}
+
+/* Adjust Select2 container and options height to accommodate image */
+.select2-container--default .select2-selection--single {
+    height: 60px !important; /* Increased height and added !important */
+    display: flex;
+    align-items: center;
+    padding-top: 10px !important; /* Increased padding and added !important */
+    padding-bottom: 10px !important; /* Increased padding and added !important */
+    overflow: hidden; /* Added to ensure content doesn't spill */
+}
+
+/* Adjust the text part inside the selected option to ensure alignment */
+.select2-container--default .select2-selection__rendered {
+    line-height: normal;
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem; /* Added: Smaller font size for selected value text */
+    overflow: hidden; /* Added to contain potential horizontal overflow (text ellipsis) */
+}
+
+/* Ensure selected option's arrow is vertically centered */
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* --- Nuevos estilos para el icono de información --- */
+.info-icon {
+    color: #f7a800; /* Amarillo corporativo */
+    font-size: 0.7em; /* Más pequeño para efecto superíndice */
+    vertical-align: super; /* Posiciona como superíndice */
+    cursor: pointer; /* Cambia el cursor a una mano */
+    transition: color 0.2s ease-in-out; /* Transición suave al pasar el ratón */
+}
+
+.info-icon:hover {
+    color: #d69700; /* Tono más oscuro al pasar el ratón */
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255,255,255,0.95);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  border: 2px dashed #ccc;
+}
+
+.overlay button {
+  margin: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+

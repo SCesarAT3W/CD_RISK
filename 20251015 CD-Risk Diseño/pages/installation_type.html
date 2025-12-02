@@ -1,0 +1,31 @@
+<div class="d-flex align-items-end">
+    <h2 class="mb-0 text-primary">Tipo de Instalación</h2> 
+    <p class="text-secondary mb-0 ms-3">Por favor, seleccione el tipo de instalación para la protección contra el rayo.</p>
+</div>
+<br>
+
+
+<div class="row justify-content-around">
+    <div class="col-md-5 mb-4">
+        <div class="card p-3 shadow-sm text-center installation-option" data-type="autonomous_mast">
+            <img src="images/SPCR_Aislado.jpg" class="img-fluid mb-3" alt="Instalación aislada sobre mástil autónomo">
+            <h5 class="fw-bold">Instalación aislada sobre mástil autónomo</h5>
+            <button type="button" class="btn btn-primary btn-lg mt-3 select-installation-btn" data-type="autonomous_mast">Seleccionar</button>
+        </div>
+    </div>
+    <div class="col-md-5 mb-4">
+        <div class="card p-3 shadow-sm text-center installation-option" data-type="on_building">
+            <img src="images/SPCR_No_Aislado.jpg" class="img-fluid mb-3" alt="Instalación sobre el edificio a proteger">
+            <h5 class="fw-bold">Instalación sobre el edificio a proteger</h5>
+            <button type="button" class="btn btn-primary btn-lg mt-3 select-installation-btn" data-type="on_building">Seleccionar</button>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="selectedInstallationType" name="installationType" value="">
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>
+

@@ -1,0 +1,368 @@
+<h2 class="mb-4 text-primary">Materiales de proteccion interna</h2>
+
+<h5 class="mb-3 text-primary">DATOS DEL EDIFICIO</h5>
+<div class="row">
+    <div class="col-md-4">
+        <div class="form-group mb-3 row align-items-center">
+            <p for="buildingNameExt" class="col-sm-5 col-form-label fw-regular">Edificio</p>
+            <div class="col-sm-7">
+                <input type="text" class="form-control" id="buildingNameExt" value="EDIFICIO PRODUCCIÓN" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group mb-3 row align-items-center">
+            <p for="BuldHeightExt" class="col-sm-6 col-form-label fw-regular">Altura del Edificio</p>
+            <div class="col-sm-6">
+                <input type="text" class="form-control" id="BuldHeightExt" value="20.00 m" readonly>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+    </div>
+</div>
+
+<div class="border border-2 p-3 rounded">
+    <div class="row">
+        <div class="col-12">
+            <h5 class="mb-3 text-primary">PROTECCIÓN INTERNA DE LÍNEAS ELÉCTRICAS</h5>
+            <div class="form-group mb-3">
+                <p class="form-label fw-regular">¿Existe un diferencial general de 30 mA?</p>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="diffGeneral30mA" id="diffGeneral30mAYes"
+                        value="Si">
+                    <label class="form-check-label" for="diffGeneral30mAYes">Sí</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="diffGeneral30mA" id="diffGeneral30mANo"
+                        value="No" checked>
+                    <label class="form-check-label" for="diffGeneral30mANo">No</label>
+                </div>
+            </div>
+            <div class="form-group mb-3">
+                <p class="form-label fw-regular">Intensidad nominal del interruptor general automático del mayor cuadro
+                    principal</p>
+                <div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity25A" value="25A"
+                            checked>
+                        <label class="form-check-label" for="intensity25A">25A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity32A" value="32A">
+                        <label class="form-check-label" for="intensity32A">32A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity40A" value="40A">
+                        <label class="form-check-label" for="intensity40A">40A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity50A" value="50A">
+                        <label class="form-check-label" for="intensity50A">50A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity63A" value="63A">
+                        <label class="form-check-label" for="intensity63A">63A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity80A" value="80A">
+                        <label class="form-check-label" for="intensity80A">80A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity100A" value="100A">
+                        <label class="form-check-label" for="intensity100A">100A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensity125A" value="125A">
+                        <label class="form-check-label" for="intensity125A">125A</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="intensity" id="intensityOver125A"
+                            value=">125A">
+                        <label class="form-check-label" for="intensityOver125A">>125A</label>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="mb-3 text-primary">CUADROS PRINCIPALES</h5>
+            <div class="row">
+                <div class="col-sm-9">
+                    <table class="table table-bordered mb-4">
+                        <thead>
+                            <tr>
+                                <th>Tensión</th>
+                                <th>Tipo</th>
+                                <th>Cuadros a proteger</th>
+                                <th>Neutro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>400 v</td>
+                                <td>Trifásico</td>
+                                <td><input type="number" class="form-control" id="principalPanel400v" value="0"></td>
+                                <td>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta11"
+                                            id="radioYes11" value="si" checked>
+                                        <label class="form-check-label" for="radioYes11">Sí</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta11"
+                                            id="radioNo11" value="no">
+                                        <label class="form-check-label" for="radioNo11">No</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>230 v</td>
+                                <td>Trifásico</td>
+                                <td><input type="number" class="form-control" id="principalPanel230v" value="0"></td>
+                                <td>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta12"
+                                            id="radioYes12" value="si">
+                                        <label class="form-check-label" for="radioYes12">Sí</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta12"
+                                            id="radioNo12" value="no">
+                                        <label class="form-check-label" for="radioNo12">No</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>230 v</td>
+                                <td>Monofásico</td>
+                                <td><input type="number" class="form-control" id="principalPanel230vM" value="0"></td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>120 v</td>
+                                <td>Monofásico</td>
+                                <td><input type="number" class="form-control" id="principalPanel120vM" value="0"></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-sm-3 d-flex align-items-center justify-content-center">
+                    <img src="images/products/imagen_base.jpg" alt="Cuadros Eléctricos Principales" class="img-fluid"
+                        style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="mb-3 text-primary">CUADROS SECUNDARIOS</h5>
+            <div class="row">
+                <div class="col-sm-9">
+                    <table class="table table-bordered mb-4">
+                        <thead>
+                            <tr>
+                                <th>Tensión</th>
+                                <th>Tipo</th>
+                                <th>Cuadros a proteger</th>
+                                <th>Neutro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>400 v</td>
+                                <td>Trifásico</td>
+                                <td><input type="number" class="form-control" id="secondaryPanel400v" value="0"></td>
+                                <td>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta21"
+                                            id="radioYes21" value="si">
+                                        <label class="form-check-label" for="radioYes21">Sí</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta21"
+                                            id="radioNo21" value="no">
+                                        <label class="form-check-label" for="radioNo21">No</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>230 v</td>
+                                <td>Trifásico</td>
+                                <td><input type="number" class="form-control" id="secondaryPanel230v" value="0"></td>
+                                <td>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta22"
+                                            id="radioYes22" value="si">
+                                        <label class="form-check-label" for="radioYes22">Sí</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="nombreDeTuPregunta22"
+                                            id="radioNo22" value="no">
+                                        <label class="form-check-label" for="radioNo22">No</label>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>230 v</td>
+                                <td>Monofásico</td>
+                                <td><input type="number" class="form-control" id="secondaryPanel230vM" value="0"></td>
+                               <td></td>
+                            </tr>
+                            <tr>
+                                <td>120 v</td>
+                                <td>Monofásico</td>
+                                <td><input type="number" class="form-control" id="secondaryPanel120vM" value="0"></td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="text-primary small mt-4">En caso de que no exista una protección de igual o menor
+                        corriente nominal instalada aguas arriba del protector, se deberá prever la instalación de fusibles 125A gl / gG.
+                    </p>
+                </div>
+                <div class="col-sm-3 d-flex align-items-center justify-content-center">
+                    <img src="images/products/imagen_base.jpg" alt="Cuadros Eléctricos Secundarios" class="img-fluid"
+                        style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="mb-3 text-primary mt-4">PROTECCIÓN DE LÍNEAS TELEFÓNICAS</h5>
+            <div class="row">
+                <div class="col-sm-9">
+
+                    <table class="table table-bordered mb-4">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Línea</th>
+                                <th>Cantidad a proteger</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Líneas analógicas a proteger</td>
+                                <td><input type="number" class="form-control" id="analogLinesNumberAn" value="0"></td>
+                            </tr>
+                            <tr>
+                                <td>Líneas digitales a proteger</td>
+                                <td><input type="number" class="form-control" id="digitalLinesNumberDig" value="0"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="form-group mb-3 row align-items-center">
+                        <label for="telephoneLinesNumber" class="col-9 col-form-label fw-bold">Número total de líneas a
+                            proteger</label>
+                        <div class="col-3">
+                            <input type="number" class="form-control" id="telephoneLinesNumber" value="0" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3 d-flex align-items-center justify-content-center">
+                    <img src="images/products/imagen_base.jpg" alt="Líneas Telefónicas" class="img-fluid"
+                        style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+
+            <hr class="my-4">
+            <h5 class="mb-3 text-primary mt-4">PROTECCIÓN DE LÍNEAS INFORMÁTICAS DE DATOS</h5>
+            <div class="row">
+                <div class="col-sm-9">
+
+                    <table class="table table-bordered mb-4">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Línea</th>
+                                <th>Cantidad a proteger</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Líneas Ethernet (RJ45)</td>
+                                <td><input type="number" class="form-control" id="ethernetLinesNumberrj45" value="0"></td>
+                            </tr>
+                            <tr>
+                                <td>Líneas de datos 5v</td>
+                                <td><input type="number" class="form-control" id="busLinesNumber5" value="0"></td>
+                            </tr>
+                            <tr>
+                                <td>Líneas de datos 12v</td>
+                                <td><input type="number" class="form-control" id="serialLinesNumber12" value="0"></td>
+                            </tr>
+                            <tr>
+                                <td>Líneas de datos 24v</td>
+                                <td><input type="number" class="form-control" id="controlLinesNumber24" value="0"></td>
+                            </tr>
+                            <tr>
+                                <td>Líneas de datos 48v</td>
+                                <td><input type="number" class="form-control" id="controlLinesNumber48" value="0"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="form-group mb-3 row align-items-center">
+                        <label for="dataLinesNumber" class="col-9 col-form-label fw-bold">Número total de líneas a
+                            proteger</label>
+                        <div class="col-3">
+                            <input type="number" class="form-control" id="dataLinesNumber" value="0" readonly>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3 d-flex align-items-center justify-content-center">
+                    <img src="images/products/imagen_base.jpg" alt="Líneas Informáticas de Datos" class="img-fluid"
+                        style="max-width: 100%; height: auto;">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br>
+<div class="row">
+   
+    <div class="col-md-6">
+        <button class="btn btn-primary mb-3" onclick="calculateMaterials()"><i class="fa-solid fa-calculator me-3"></i>CALCULAR LOS MATERIALES</button>
+    </div>
+</div>
+
+<div id="materialsCalculatedTable" class="border border-4 p-3 rounded d-none">
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Ref.</th>
+                <th>Materiales</th>
+                <th>Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>AT-B036</td>
+                <td>ATSUB-4P-NR-65TT. Imax 65kA. Up=230V</td>
+                <td>1,00</td>
+            </tr>
+            <tr>
+                <td>AT-9079</td>
+                <td>IGA TEST I 125 D</td>
+                <td>1,00</td>
+            </tr>
+            <tr>
+                <td>AT-9200</td>
+                <td>ATSUB-DM IIDN. Imax=15kA. Up=1,5kV. 2P</td>
+                <td>2,00</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="text-primary small mt-4">Para confeccionar el presupuesto para la protección interna, indique los
+        elementos a proteger por cada edificio.</p>
+</div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>
+
+<script>
+function calculateMaterials() {
+    const materialsTable = document.getElementById('materialsCalculatedTable');
+    if (materialsTable) {
+        materialsTable.classList.remove('d-none'); // Elimina la clase 'd-none' para mostrar la tabla
+    }
+}
+</script>

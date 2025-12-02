@@ -1,0 +1,151 @@
+<h2 class="mb-4 text-primary">Resultados del Cálculo</h2>
+
+<div class="card p-4 mb-4 shadow-sm">
+    <h5 class="mb-3 text-primary">RIESGOS CALCULADOS</h5>
+    <table class="table table-bordered text-center">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Riesgo Tolerable (Rt)</th>
+                <th>Riesgo Calculado (R) Inicial</th>
+                <th>Riesgo Calculado (R) Propuesto</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-start fw-bold">Pérdidas de vidas humanas</td>
+                <td>1.00E-05</td>
+                <td id="initialR1" class="bg-danger text-white fw-bold">R1 = 9.70E-4</td>
+                <td id="solutionR1" class="bg-light fw-bold">N/A</td> </tr>
+            <tr>
+                <td class="text-start fw-bold">Pérdidas de servicios públicos</td>
+                <td>1.00E-03</td>
+                <td id="initialR2" class="bg-success text-white fw-bold">R2 = 0.00E+0</td>
+                <td id="solutionR2" class="bg-light fw-bold">N/A</td>
+            </tr>
+            <tr>
+                <td class="text-start fw-bold">Pérdidas de patrimonio</td>
+                <td>1.00E-04</td>
+                <td id="initialR3" class="bg-success text-white fw-bold">R3 = 0.00E+0</td>
+                <td id="solutionR3" class="bg-light fw-bold">N/A</td>
+            </tr>
+            <tr>
+                <td class="text-start fw-bold">Pérdidas económicas</td>
+                <td>1.00E-03</td>
+                <td id="initialR4" class="bg-danger text-white fw-bold">R4 = 9.70E-3</td>
+                <td id="solutionR4" class="bg-light fw-bold">N/A</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="row justify-content-center mt-3 mb-4">
+        <div class="col-auto">
+            <button class="btn btn-primary btn-lg" id="btnCalcularSolucion">
+                <i class="fas fa-calculator me-2"></i> Calcular Solución
+            </button>
+        </div>
+    </div>
+
+    <h5 class="mb-3 text-primary mt-5">SOLUCIÓN</h5>
+    <div class="row text-center mb-4">
+        <div class="col-md-6">
+            <p class="fw-bold mb-1">Nivel de protección adecuado</p>
+            <div class="card p-3 bg-light text-primary" id="nivelProteccionCard"> <h4 class="mb-0" id="nivelProteccionValor">Sin protección</h4>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <p class="fw-bold mb-1">Tipo de protección interna</p>
+            <div class="card p-3 bg-light text-primary" id="tipoProteccionCard"> <h4 class="mb-0" id="tipoProteccionValor">Sin protección</h4>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+<div class="d-flex justify-content-between mt-4">
+    <button class="btn btn-orange" onclick="previousStep()">Anterior</button>
+    <button class="btn btn-orange" onclick="nextStep()">Siguiente</button>
+</div>
+
+<script>
+    // Se utiliza un IIFE (Immediately Invoked Function Expression) para crear un ámbito local
+    // y evitar el error de redeclaración de 'const' cuando el script se re-ejecuta dinámicamente.
+    (function() {
+        console.log('Script de calculation_results.html cargado.');
+
+        // Ahora, btnCalcularSolucion es local a esta función y puede ser redeclarado
+        // sin problemas cuando el paso se vuelve a cargar.
+        const btnCalcularSolucion = document.getElementById('btnCalcularSolucion');
+
+        if (btnCalcularSolucion) {
+            // Asegura que el botón esté habilitado al cargar la página
+            btnCalcularSolucion.disabled = false;
+            console.log('Botón "Calcular Solución" encontrado y habilitado.');
+
+            btnCalcularSolucion.addEventListener('click', function() {
+                console.log('Botón "Calcular Solución" clickeado. Iniciando simulación...');
+                // --- Simulación de los valores deseados al pulsar el botón ---
+                // Estos valores simulan que los riesgos R1 y R4 han bajado del límite tolerable
+                const solutionR1_val = 'R1 = 8.91E-6'; // < 1.00E-5 (Rt)
+                const solutionR2_val = 'R2 = 0.00E+0';
+                const solutionR3_val = 'R3 = 0.00E+0';
+                const solutionR4_val = 'R4 = 1.10E-5'; // < 1.00E-3 (Rt)
+
+                const nuevoNivelPropuesto = 'Nivel III';
+                const nuevaProteccionPropuesta = 'Protección Coordinada';
+
+                // --- Actualizar la columna "Riesgo Calculado (R) Propuesto" a VERDE y texto blanco ---
+                const solutionRisks = {
+                    'solutionR1': solutionR1_val,
+                    'solutionR2': solutionR2_val,
+                    'solutionR3': solutionR3_val,
+                    'solutionR4': solutionR4_val
+                };
+
+                for (const id in solutionRisks) {
+                    const cell = document.getElementById(id);
+                    if (cell) {
+                        cell.textContent = solutionRisks[id];
+                        // Remover cualquier clase de color previa para aplicar el nuevo color
+                        cell.classList.remove('bg-light', 'bg-danger', 'bg-success', 'text-primary', 'bg-primary', 'bg-corporate-blue');
+                        cell.classList.add('bg-success', 'text-white'); // Aplicar VERDE (Bootstrap default) y texto blanco
+                        console.log(`Celda ${id} actualizada a: ${solutionRisks[id]}`);
+                    } else {
+                        console.warn(`Elemento con ID ${id} no encontrado.`);
+                    }
+                }
+
+                // --- Actualizar los valores y el color de los bloques de la sección SOLUCIÓN a AZUL CORPORATIVO y texto blanco ---
+                const nivelProteccionValor = document.getElementById('nivelProteccionValor');
+                const nivelProteccionCard = document.getElementById('nivelProteccionCard');
+                if (nivelProteccionValor && nivelProteccionCard) {
+                    nivelProteccionValor.textContent = nuevoNivelPropuesto;
+                    // Remover clases previas para aplicar el nuevo color
+                    nivelProteccionCard.classList.remove('bg-light', 'bg-danger', 'bg-success', 'text-primary', 'bg-primary', 'bg-corporate-blue');
+                    nivelProteccionCard.classList.add('bg-corporate-blue', 'text-white'); // Aplicar AZUL CORPORATIVO (nueva clase) y texto blanco
+                    console.log(`Bloque "Nivel de protección adecuado" actualizado a: ${nuevoNivelPropuesto}`);
+                } else {
+                    console.warn('Elementos de "Nivel de protección adecuado" no encontrados.');
+                }
+
+                const tipoProteccionValor = document.getElementById('tipoProteccionValor');
+                const tipoProteccionCard = document.getElementById('tipoProteccionCard');
+                if (tipoProteccionValor && tipoProteccionCard) {
+                    tipoProteccionValor.textContent = nuevaProteccionPropuesta;
+                    // Remover clases previas para aplicar el nuevo color
+                    tipoProteccionCard.classList.remove('bg-light', 'bg-danger', 'bg-success', 'text-primary', 'bg-primary', 'bg-corporate-blue');
+                    tipoProteccionCard.classList.add('bg-corporate-blue', 'text-white'); // Aplicar AZUL CORPORATIVO (nueva clase) y texto blanco
+                    console.log(`Bloque "Tipo de protección interna" actualizado a: ${nuevaProteccionPropuesta}`);
+                } else {
+                    console.warn('Elementos de "Tipo de protección interna" no encontrados.');
+                }
+                
+                // Esta línea deshabilita el botón SÓLO para la instancia actual de la página.
+                this.disabled = true;
+                console.log('Simulación completada. Botón deshabilitado en esta instancia.');
+            });
+        } else {
+            console.error('ERROR: Botón "btnCalcularSolucion" NO ENCONTRADO al cargar el script.');
+        }
+    })(); // Fin del IIFE
+</script>

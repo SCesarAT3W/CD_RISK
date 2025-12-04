@@ -7,6 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Plus, Trash2 } from 'lucide-react'
 import { ProtectionSchemeCanvas } from '@/components/ProtectionSchemeCanvas'
 import { PararrayosNavigation } from '@/components/PararrayosNavigation'
@@ -196,6 +197,21 @@ function ProtectionSchemeStepInner({ data, onChange, onBulkChange }: ProtectionS
 
   return (
     <div className="space-y-4">
+      {/* Header con título y switch de validación */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-primary">Esquema de Protección</h2>
+        <div className="flex items-center gap-3">
+          <Label htmlFor="skip-validation-step5" className="text-sm font-normal cursor-pointer">
+            Omitir validación de campos
+          </Label>
+          <Switch
+            id="skip-validation-step5"
+            checked={data.skipValidation || false}
+            onCheckedChange={(checked) => onChange('skipValidation', checked)}
+          />
+        </div>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2">
         {/* Columna izquierda: Detalles de la protección */}
         <Card>

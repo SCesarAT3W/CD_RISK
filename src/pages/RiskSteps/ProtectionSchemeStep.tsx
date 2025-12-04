@@ -1,34 +1,31 @@
-import { useMemo, useEffect, useState, useCallback } from 'react'
+import { useMemo, useEffect, useState, useCallback, memo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
+import { CardSelect } from '@/components/ui/card-select'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Button } from '@/components/ui/button'
-import { Sparkles, ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2 } from 'lucide-react'
 import { ProtectionSchemeCanvas } from '@/components/ProtectionSchemeCanvas'
+import { PararrayosNavigation } from '@/components/PararrayosNavigation'
 import type { ProtectionSchemeStepProps } from '@/types/stepProps'
 import {
   HEAD_CONFIGS,
   PROTECTION_LEVELS,
+  PROTECTION_LEVELS_CTE,
   MAST_TYPES,
   MAST_HEIGHTS,
   ANCHOR_TYPES,
   ANCHOR_SEPARATION_OPTIONS,
   getModelsByType,
+  getHeadType,
+  getHeightsByMastType,
+  getAnchorsByHeight,
 } from '@/config/formConfig'
 
-const isDev = import.meta.env.DEV
-
 const HEAD_TYPES = HEAD_CONFIGS.map((c) => c.type)
-
-/**
- * Generic function to select a random element preserving type
- */
-function randomFromArray<T>(arr: readonly T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
 
 /**
  * Gets the default model for a head type
@@ -38,56 +35,66 @@ function getDefaultModel(type: string | undefined): string {
   return models.length > 0 ? models[0] : 'DAT CONTROLER REMOTE 15'
 }
 
-const generateMockProtectionScheme = () => {
-  const randomNum = (min: number, max: number) => (Math.random() * (max - min) + min).toFixed(2)
-
-  // Select head type using configuration
-  const headType = randomFromArray(HEAD_TYPES)
-
-  // Generate model matching the selected type using helper
-  const availableModels = getModelsByType(headType)
-  const headModel = randomFromArray(availableModels)
-
-  return {
-    headType,
-    headModel,
-    mastType: randomFromArray(['Telescopico', 'Fijo', 'Abatible'] as const),
-    mastHeight: randomFromArray(['3', '6', '9', '12'] as const),
-    anchorType: randomFromArray(['Pared', 'Suelo', 'Tejado'] as const),
-    anchorSeparation: randomNum(1, 5),
-  }
-}
-
 /**
  * Paso 5: Esquema de Protección
  * Implementación con navegación de pararrayos inspirada en el diseño original
  */
-export function ProtectionSchemeStep({ data, onChange, onBulkChange }: ProtectionSchemeStepProps) {
+function ProtectionSchemeStepInner({ data, onChange, onBulkChange }: ProtectionSchemeStepProps) {
   // Estado para el índice del pararrayos actualmente seleccionado
   const [selectedZoneIndex, setSelectedZoneIndex] = useState<number>(0)
-
-  const handleAutofill = () => {
-    if (onBulkChange) {
-      onBulkChange(generateMockProtectionScheme())
-    }
-  }
-
-  // Get head models based on the selected type using configuration
-  const headOptions = useMemo(
-    () => getModelsByType(data.headType),
-    [data.headType]
-  )
-
-  // Get the current head type (with fallback to the first one)
-  const currentHeadType = data.headType || HEAD_TYPES[0]
-
-  // Get the current head model (with fallback to the first one of the selected type)
-  const currentHeadModel = data.headModel || getDefaultModel(currentHeadType)
 
   // Lista de pararrayos configurados
   const protectionZones = data.protectionZones || []
   const hasZones = protectionZones.length > 0
   const currentZone = hasZones ? protectionZones[selectedZoneIndex] : null
+
+  // Calculate the current head type based on whether we're editing a zone or global config
+  const currentHeadType = useMemo(() => {
+    if (hasZones && currentZone?.model) {
+      return getHeadType(currentZone.model) || HEAD_TYPES[0]
+    }
+    return data.headType || HEAD_TYPES[0]
+  }, [hasZones, currentZone?.model, data.headType])
+
+  // Get head models based on the current type
+  const headOptions = useMemo(
+    () => getModelsByType(currentHeadType).map(model => ({ value: model, label: model })),
+    [currentHeadType]
+  )
+
+  // Get the current head model (with fallback to the first one of the selected type)
+  const currentHeadModel = useMemo(() => {
+    if (hasZones && currentZone?.model) {
+      return currentZone.model
+    }
+    return data.headModel || getDefaultModel(currentHeadType)
+  }, [hasZones, currentZone?.model, data.headModel, currentHeadType])
+
+  // Get protection level options based on normative
+  const protectionOptions = useMemo(() => {
+    return data.calculationNormative === 'cte' ? PROTECTION_LEVELS_CTE : PROTECTION_LEVELS
+  }, [data.calculationNormative])
+
+  // Regla 4: Get available heights based on selected mast type
+  const availableHeights = useMemo(() => {
+    const mastType = hasZones ? (currentZone?.mastType || data.mastType) : data.mastType
+    return getHeightsByMastType(mastType)
+  }, [hasZones, currentZone?.mastType, data.mastType])
+
+  // Regla 5: Show anchor field only if mastType is 'Mastil'
+  const showAnchorField = useMemo(() => {
+    const mastType = hasZones ? (currentZone?.mastType || data.mastType) : data.mastType
+    return mastType === 'Mastil'
+  }, [hasZones, currentZone?.mastType, data.mastType])
+
+  // Regla 6: Get available anchors based on selected mast height (only for Mástil)
+  const availableAnchors = useMemo(() => {
+    const mastType = hasZones ? (currentZone?.mastType || data.mastType) : data.mastType
+    if (mastType !== 'Mastil') return []
+
+    const mastHeight = hasZones ? (currentZone?.mastHeight || data.mastHeight) : data.mastHeight
+    return getAnchorsByHeight(mastHeight)
+  }, [hasZones, currentZone?.mastType, currentZone?.mastHeight, data.mastType, data.mastHeight])
 
   const handleZonesChange = useCallback((zones: typeof protectionZones) => {
     onChange('protectionZones', zones)
@@ -121,8 +128,8 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
   const handleAddLightningRod = () => {
     const newZone = {
       id: `zone-${Date.now()}`,
-      x: 40, // Default position (will be ignored if not placed on map)
-      y: 25,
+      x: 400, // Centro del canvas (800px / 2), dentro del edificio
+      y: 250, // Centro del canvas (500px / 2), dentro del edificio
       radius: 20,
       model: currentHeadModel,
       level: data.protectionLevel || 'III',
@@ -130,7 +137,7 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
       mastHeight: data.mastHeight,
       anchorType: data.anchorType,
       anchorSeparation: data.anchorSeparation,
-      placedOnMap: false, // NOT placed on map yet
+      placedOnMap: true, // Colocado por defecto en el mapa
     }
 
     const updatedZones = [...protectionZones, newZone]
@@ -161,6 +168,16 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
     onChange('protectionZones', updatedZones)
   }
 
+  // Update multiple fields at once in the currently selected lightning rod
+  const updateCurrentZoneMultiple = (fields: Record<string, unknown>) => {
+    if (!currentZone || !hasZones) return
+
+    const updatedZones = protectionZones.map((zone, index) =>
+      index === selectedZoneIndex ? { ...zone, ...fields } : zone
+    )
+    onChange('protectionZones', updatedZones)
+  }
+
   // Delete a lightning rod by index
   const handleDeleteZone = (indexToDelete: number) => {
     const updatedZones = protectionZones.filter((_, index) => index !== indexToDelete)
@@ -179,45 +196,38 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
 
   return (
     <div className="space-y-4">
-      {isDev && (
-        <div className="flex justify-end">
-          <Button onClick={handleAutofill} variant="outline" size="sm" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Autorellenar
-          </Button>
-        </div>
-      )}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Columna izquierda: Detalles de la protección */}
         <Card>
           <CardHeader>
             <CardTitle className="text-primary">DETALLES DE LA PROTECCIÓN</CardTitle>
           </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Nombre del edificio */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="buildingNameExt" className="col-span-2">
-              Nombre del edificio
-            </Label>
-            <Input
-              id="buildingNameExt"
-              value={data.projectName || 'EDIFICIO PRODUCCIÓN'}
-              readOnly
-              className="col-span-3 bg-muted"
-            />
-          </div>
+        <CardContent className="space-y-6">
+          {/* Nombre y Altura del edificio en la misma fila */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="buildingNameExt">
+                Nombre del edificio
+              </Label>
+              <Input
+                id="buildingNameExt"
+                value={data.projectName || 'EDIFICIO PRODUCCIÓN'}
+                readOnly
+                className="bg-muted"
+              />
+            </div>
 
-          {/* Altura del edificio */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="buildingHeight" className="col-span-2">
-              Altura del edificio
-            </Label>
-            <Input
-              id="buildingHeight"
-              value={`${data.height || '20.00'} m`}
-              readOnly
-              className="col-span-3 bg-muted"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="buildingHeight">
+                Altura del edificio
+              </Label>
+              <Input
+                id="buildingHeight"
+                value={`${data.height || '20.00'} m`}
+                readOnly
+                className="bg-muted"
+              />
+            </div>
           </div>
 
           <Separator className="my-4" />
@@ -235,37 +245,12 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
 
             {/* Navigation between lightning rods */}
             {hasZones && (
-              <div className="flex items-center justify-center gap-2 rounded-md border bg-muted/50 p-3">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handlePreviousZone}
-                  disabled={selectedZoneIndex === 0}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    value={selectedZoneIndex + 1}
-                    readOnly
-                    className="h-8 w-16 text-center"
-                  />
-                  <span className="text-sm text-muted-foreground">
-                    de {protectionZones.length}
-                  </span>
-                </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleNextZone}
-                  disabled={selectedZoneIndex === protectionZones.length - 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+              <PararrayosNavigation
+                currentIndex={selectedZoneIndex}
+                totalCount={protectionZones.length}
+                onPrevious={handlePreviousZone}
+                onNext={handleNextZone}
+              />
             )}
           </div>
 
@@ -275,7 +260,7 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
           <div className="space-y-2">
             <Label>Tipo de cabezal {hasZones && <span className="text-xs text-muted-foreground">(editando pararrayos {selectedZoneIndex + 1})</span>}</Label>
             <RadioGroup
-              value={hasZones ? (currentZone?.model?.includes('REMOTE') ? 'DAT CONTROLER® REMOTE' : 'DAT CONTROLER® PLUS') : (data.headType || HEAD_TYPES[0])}
+              value={hasZones ? (getHeadType(currentZone?.model || '') || HEAD_TYPES[0]) : (data.headType || HEAD_TYPES[0])}
               onValueChange={(value) => {
                 if (hasZones) {
                   // Update current lightning rod
@@ -295,6 +280,7 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
                   }
                 }
               }}
+              className="flex flex-wrap gap-4"
             >
               {HEAD_CONFIGS.map((config) => {
                 const id = config.type.replace(/[®\s]/g, '').toLowerCase()
@@ -311,140 +297,152 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
           </div>
 
           {/* Head model */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="headModel" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="headModel">
               Modelo de cabezal
             </Label>
-            <div className="col-span-3">
-              <Select
-                key={`${currentHeadType}-${selectedZoneIndex}`}
-                value={hasZones ? (currentZone?.model || '') : (data.headModel || '')}
-                onValueChange={(value) => {
-                  if (hasZones) {
-                    updateCurrentZone('model', value)
-                  } else {
-                    onChange('headModel', value)
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="--Seleccione modelo de cabezal--" />
-                </SelectTrigger>
-                <SelectContent>
-                  {headOptions.map((model) => (
-                    <SelectItem key={model} value={model}>
-                      {model}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardSelect
+              key={`${currentHeadType}-${selectedZoneIndex}`}
+              value={hasZones ? (currentZone?.model || '') : (data.headModel || '')}
+              onValueChange={(value) => {
+                if (hasZones) {
+                  updateCurrentZone('model', value)
+                } else {
+                  onChange('headModel', value)
+                }
+              }}
+              options={headOptions}
+              columns={2}
+            />
           </div>
 
           {/* Radio de Protección */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="radioProteccion" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="radioProteccion">
               Radio de Protección {hasZones && <span className="text-xs text-muted-foreground">(editando pararrayos {selectedZoneIndex + 1})</span>}
             </Label>
-            <div className="col-span-3">
-              <Select
-                key={`protectionLevel-${selectedZoneIndex}`}
-                value={hasZones ? (currentZone?.level || data.protectionLevel || 'III') : (data.protectionLevel || 'III')}
-                onValueChange={(value) => {
-                  if (hasZones) {
-                    updateCurrentZone('level', value)
-                  } else {
-                    onChange('protectionLevel', value)
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="--Seleccione nivel de protección--" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PROTECTION_LEVELS.map((level) => (
-                    <SelectItem key={level.value} value={level.value}>
-                      {level.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardSelect
+              key={`protectionLevel-${selectedZoneIndex}-${data.calculationNormative}`}
+              value={hasZones ? (currentZone?.level || data.protectionLevel || (data.calculationNormative === 'cte' ? '3' : 'III')) : (data.protectionLevel || (data.calculationNormative === 'cte' ? '3' : 'III'))}
+              onValueChange={(value) => {
+                if (hasZones) {
+                  updateCurrentZone('level', value)
+                } else {
+                  onChange('protectionLevel', value)
+                }
+              }}
+              options={protectionOptions}
+              columns={4}
+            />
           </div>
 
           <Separator className="my-4" />
 
           {/* Tipo de mástil */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="mastType" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="mastType">
               Tipo de mástil
             </Label>
-            <div className="col-span-3">
-              <Select
-                key={`mastType-${selectedZoneIndex}`}
-                value={hasZones ? (currentZone?.mastType || data.mastType || '') : (data.mastType || '')}
-                onValueChange={(value) => {
-                  if (hasZones) {
-                    updateCurrentZone('mastType', value)
-                  } else {
-                    onChange('mastType', value)
+            <CardSelect
+              key={`mastType-${selectedZoneIndex}`}
+              value={hasZones ? (currentZone?.mastType || data.mastType || '') : (data.mastType || '')}
+              onValueChange={(value) => {
+                if (hasZones) {
+                  // Al cambiar tipo de mástil, limpiar altura y anclaje
+                  updateCurrentZoneMultiple({
+                    mastType: value,
+                    mastHeight: '',
+                    anchorType: '',
+                  })
+                } else {
+                  // Al cambiar tipo de mástil, limpiar altura y anclaje (actualización atómica)
+                  if (onBulkChange) {
+                    onBulkChange({
+                      mastType: value,
+                      mastHeight: '',
+                      anchorType: '',
+                    })
                   }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="--Seleccione tipo de mástil--" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MAST_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                }
+              }}
+              options={MAST_TYPES}
+              columns={4}
+              layout="grid"
+            />
           </div>
 
           {/* Altura del mástil */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="mastHeight" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="mastHeight">
               Altura del mástil
             </Label>
-            <div className="col-span-3">
-              <Select
-                key={`mastHeight-${selectedZoneIndex}`}
-                value={hasZones ? (currentZone?.mastHeight || data.mastHeight || '') : (data.mastHeight || '')}
-                onValueChange={(value) => {
-                  if (hasZones) {
+            <Select
+              key={`mastHeight-${selectedZoneIndex}`}
+              value={hasZones ? (currentZone?.mastHeight || data.mastHeight || '') : (data.mastHeight || '')}
+              onValueChange={(value) => {
+                if (hasZones) {
+                  // Al cambiar altura, limpiar anclaje si no es compatible
+                  const currentMastType = currentZone?.mastType || data.mastType
+                  if (currentMastType === 'Mastil') {
+                    const currentAnchor = currentZone?.anchorType || data.anchorType
+                    const newAvailableAnchors = getAnchorsByHeight(value)
+                    if (currentAnchor && !newAvailableAnchors.some(a => a.value === currentAnchor)) {
+                      // Update both height and clear anchor in one call
+                      updateCurrentZoneMultiple({
+                        mastHeight: value,
+                        anchorType: '',
+                      })
+                    } else {
+                      // Just update height
+                      updateCurrentZone('mastHeight', value)
+                    }
+                  } else {
+                    // Just update height
                     updateCurrentZone('mastHeight', value)
+                  }
+                } else {
+                  // Al cambiar altura, limpiar anclaje si no es compatible
+                  if (data.mastType === 'Mastil') {
+                    const newAvailableAnchors = getAnchorsByHeight(value)
+                    if (data.anchorType && !newAvailableAnchors.some(a => a.value === data.anchorType)) {
+                      // Actualización atómica de ambos campos
+                      if (onBulkChange) {
+                        onBulkChange({
+                          mastHeight: value,
+                          anchorType: '',
+                        })
+                      }
+                    } else {
+                      onChange('mastHeight', value)
+                    }
                   } else {
                     onChange('mastHeight', value)
                   }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="--Seleccione altura--" />
-                </SelectTrigger>
-                <SelectContent>
-                  {MAST_HEIGHTS.map((height) => (
-                    <SelectItem key={height.value} value={height.value}>
-                      {height.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                }
+              }}
+            >
+              <SelectTrigger id="mastHeight">
+                <SelectValue placeholder="Selecciona altura" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableHeights.map((height) => (
+                  <SelectItem key={height.value} value={height.value}>
+                    {height.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Separator className="my-4" />
 
-          {/* Tipo de anclaje */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="anchorType" className="col-span-2">
-              Tipo de anclaje
-            </Label>
-            <div className="col-span-3">
-              <Select
+          {/* Tipo de anclaje - Solo visible si mastType === 'Mastil' */}
+          {showAnchorField && (
+            <div className="space-y-2">
+              <Label htmlFor="anchorType">
+                Tipo de anclaje
+              </Label>
+              <CardSelect
                 key={`anchorType-${selectedZoneIndex}`}
                 value={hasZones ? (currentZone?.anchorType || data.anchorType || '') : (data.anchorType || '')}
                 onValueChange={(value) => {
@@ -454,28 +452,19 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
                     onChange('anchorType', value)
                   }
                 }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="--Seleccione tipo de anclaje--" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ANCHOR_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={availableAnchors}
+                columns={2}
+              />
             </div>
-          </div>
+          )}
 
-          {/* Separación del anclaje */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="anchorSeparation" className="col-span-2">
-              Separación del anclaje
-            </Label>
-            <div className="col-span-3">
-              <Select
+          {/* Separación del anclaje - Solo visible si mastType === 'Mastil' */}
+          {showAnchorField && (
+            <div className="space-y-2">
+              <Label htmlFor="anchorSeparation">
+                Separación del anclaje
+              </Label>
+              <CardSelect
                 key={`anchorSeparation-${selectedZoneIndex}`}
                 value={hasZones ? (currentZone?.anchorSeparation || data.anchorSeparation || '') : (data.anchorSeparation || '')}
                 onValueChange={(value) => {
@@ -485,20 +474,11 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
                     onChange('anchorSeparation', value)
                   }
                 }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="--Seleccione separación--" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ANCHOR_SEPARATION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                options={ANCHOR_SEPARATION_OPTIONS}
+                columns={3}
+              />
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
@@ -534,7 +514,6 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
                     <thead>
                       <tr className="border-b">
                         <th className="p-2 text-left">#</th>
-                        <th className="p-2 text-left">Estado</th>
                         <th className="p-2 text-left">Modelo</th>
                         <th className="p-2 text-left">Nivel</th>
                         <th className="p-2 text-left">Tipo Mástil</th>
@@ -546,7 +525,6 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
                     </thead>
                     <tbody>
                       {data.protectionZones.map((zone, index) => {
-                        const isOnMap = zone.placedOnMap === true
                         return (
                           <tr
                             key={zone.id}
@@ -562,16 +540,6 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
                             >
                               {index === selectedZoneIndex && <span className="mr-1">▶</span>}
                               {index + 1}
-                            </td>
-                            <td
-                              className="p-2 cursor-pointer"
-                              onClick={() => setSelectedZoneIndex(index)}
-                            >
-                              {isOnMap ? (
-                                <span className="text-green-600 text-xs font-medium">✓ En mapa</span>
-                              ) : (
-                                <span className="text-orange-600 text-xs font-medium">⚠ Pendiente</span>
-                              )}
                             </td>
                             <td
                               className="p-2 cursor-pointer"
@@ -619,16 +587,6 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
                 <div className="mt-4 text-xs text-muted-foreground">
                   <p>
                     Total de pararrayos configurados: <strong>{data.protectionZones.length}</strong>
-                    {' '}
-                    (<span className="text-green-600 font-medium">✓ En mapa: {data.protectionZones.filter(z => z.placedOnMap === true).length}</span>
-                    {' | '}
-                    <span className="text-orange-600 font-medium">⚠ Pendientes: {data.protectionZones.filter(z => z.placedOnMap !== true).length}</span>)
-                  </p>
-                  <p className="mt-2">
-                    <span className="text-green-600 font-medium">✓ En mapa:</span> Colocado y visible en el esquema de protección
-                  </p>
-                  <p className="mt-1">
-                    <span className="text-orange-600 font-medium">⚠ Pendiente:</span> Configurado pero no colocado en el mapa (dibuja un área primero)
                   </p>
                   <p className="mt-1">Haz clic en una fila para seleccionarla y editarla con los controles de arriba.</p>
                 </div>
@@ -642,3 +600,5 @@ export function ProtectionSchemeStep({ data, onChange, onBulkChange }: Protectio
     </div>
   )
 }
+
+export const ProtectionSchemeStep = memo(ProtectionSchemeStepInner)

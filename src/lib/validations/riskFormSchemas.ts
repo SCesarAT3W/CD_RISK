@@ -337,6 +337,11 @@ export type CompleteRiskForm = z.infer<typeof completeRiskFormSchema>
  * Función helper para validar un paso específico
  */
 export function validateStep(stepId: string, data: Partial<CompleteRiskForm>): { success: boolean; errors?: z.ZodError } {
+  // Si skipValidation está activo, permitir avanzar sin validar
+  if ((data as any).skipValidation === true) {
+    return { success: true }
+  }
+
   const schemaMap: Record<string, z.ZodSchema> = {
     project_data: projectDataSchema,
     dimensions: dimensionsSchema,

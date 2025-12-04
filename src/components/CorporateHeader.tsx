@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { memo } from 'react'
 import { useAuth } from '@/lib/auth/mockAuth'
 import { LogOut } from 'lucide-react'
 import { logger } from '@/lib/logger'
@@ -7,7 +8,7 @@ import { logger } from '@/lib/logger'
  * Header corporativo de Aplicaciones Tecnológicas
  * Replicando el diseño original con React y Tailwind
  */
-export function CorporateHeader() {
+function CorporateHeaderComponent() {
   const { user, logout } = useAuth()
 
   const handleLogout = async () => {
@@ -88,3 +89,7 @@ export function CorporateHeader() {
     </header>
   )
 }
+
+// Evita re-render si el padre cambia sin que cambie el contexto de auth
+export const CorporateHeader = memo(CorporateHeaderComponent)
+CorporateHeader.displayName = 'CorporateHeader'

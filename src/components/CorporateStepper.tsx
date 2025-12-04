@@ -26,7 +26,7 @@ export function CorporateStepper({
   className,
 }: CorporateStepperProps) {
   return (
-    <div className={cn('relative mb-8 px-4', className)}>
+    <div className={cn('relative  px-4', className)}>
       {/* Línea conectora de fondo */}
       <div className="absolute left-4 right-4 top-5 h-0.5 bg-border" aria-hidden="true" />
 

@@ -194,27 +194,116 @@ export const HEAD_CONFIGS: HeadConfig[] = [
 
 export const MAST_TYPES: SelectOption[] = [
   { value: 'Mastil', label: 'Mástil' },
-  { value: 'TCelosia', label: 'Torretas de celosía' },
+  { value: 'TCelosia', label: 'Torreta triangular' },
   { value: 'MAutonomo', label: 'Mástil autónomo' },
-  { value: 'TAutosoportada', label: 'Torre autosoportada' },
+  { value: 'TAutosoportada', label: 'Torre cuadrada' },
 ]
 
+// Regla 4: Alturas disponibles según tipo de soporte
+export interface MastHeightConfig {
+  mastType: string
+  heights: SelectOption[]
+}
+
+export const MAST_HEIGHTS_BY_TYPE: MastHeightConfig[] = [
+  {
+    mastType: 'Mastil',
+    heights: [
+      { value: '2m', label: '2m' },
+      { value: '3m', label: '3m' },
+      { value: '4m', label: '4m' },
+      { value: '6m', label: '6m' },
+      { value: '8m', label: '8m' },
+    ],
+  },
+  {
+    mastType: 'TCelosia',
+    heights: [
+      { value: '5.5m', label: '5.5m' },
+      { value: '8.5m', label: '8.5m' },
+      { value: '11.5m', label: '11.5m' },
+      { value: '14.5m', label: '14.5m' },
+      { value: '17.5m', label: '17.5m' },
+      { value: '20.5m', label: '20.5m' },
+      { value: '23.5m', label: '23.5m' },
+      { value: '26.5m', label: '26.5m' },
+    ],
+  },
+  {
+    mastType: 'TAutosoportada',
+    heights: [
+      { value: '14m', label: '14m' },
+      { value: '16m', label: '16m' },
+      { value: '18m', label: '18m' },
+      { value: '20m', label: '20m' },
+      { value: '22m', label: '22m' },
+      { value: '24m', label: '24m' },
+      { value: '26m', label: '26m' },
+    ],
+  },
+  {
+    mastType: 'MAutonomo',
+    heights: [
+      { value: '6m', label: '6m' },
+      { value: '8m', label: '8m' },
+      { value: '10m', label: '10m' },
+      { value: '12m', label: '12m' },
+      { value: '15m', label: '15m' },
+      { value: '18m', label: '18m' },
+      { value: '20m', label: '20m' },
+      { value: '25m', label: '25m' },
+      { value: '30m', label: '30m' },
+      { value: '40m', label: '40m' },
+    ],
+  },
+]
+
+// Legacy export for backward compatibility
 export const MAST_HEIGHTS: SelectOption[] = [
   { value: '3m', label: '3m' },
   { value: '6m', label: '6m' },
   { value: '8m', label: '8m' },
 ]
 
-export const ANCHOR_TYPES: SelectOption[] = [
-  { value: 'AEnU', label: 'Anclaje en U' },
-  { value: 'ABAngulo', label: 'Barra en ángulo' },
-  { value: 'ALigero', label: 'Ligero' },
-  { value: 'EATPlano', label: 'Tejado plano' },
-  { value: 'AAjustable', label: 'Ajustable' },
-  { value: 'Pared', label: 'Pared' },
-  { value: 'Suelo', label: 'Suelo' },
-  { value: 'Tejado', label: 'Tejado' },
+// Regla 6: Anclajes compatibles con alturas de mástil
+export interface AnchorHeightCompat {
+  value: string
+  label: string
+  compatibleHeights: string[] // Array de alturas compatibles
+}
+
+export const ANCHOR_TYPES_WITH_COMPAT: AnchorHeightCompat[] = [
+  // Anclajes para 2m, 3m, 4m y 6m
+  { value: 'AnclajePlano3m', label: 'Anclaje tejado plano mast 3m', compatibleHeights: ['2m', '3m'] },
+  { value: 'AnclajePlano6m', label: 'Anclaje tejado plano mast 6m', compatibleHeights: ['4m', '6m'] },
+  { value: 'AnclajeU15_2-6', label: 'Anclaje en U 15cm (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeU30_2-6', label: 'Anclaje en U 30cm (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeU60_2-6', label: 'Anclaje en U 60cm (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeLigero30_2-6', label: 'Anclaje ligero 30 cm (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeBrida_2-6', label: 'Anclaje doble brida H (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeParalelo_2-6', label: 'Anclaje paralelo (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeAjustable_2-6', label: 'Anclaje ajustable 60/80 (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeBarra30_2-6', label: 'Anclaje barra 30cm (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeBarra60_2-6', label: 'Anclaje barra 60cm (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+  { value: 'AnclajeBarra100_2-6', label: 'Anclaje barra 100cm (2-6m)', compatibleHeights: ['2m', '3m', '4m', '6m'] },
+
+  // Anclajes para 8m
+  { value: 'AnclajeU15_8', label: 'Anclaje en U 15cm (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeU30_8', label: 'Anclaje en U 30cm (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeU60_8', label: 'Anclaje en U 60cm (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeLigero30_8', label: 'Anclaje ligero 30 cm (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeBrida_8', label: 'Anclaje doble brida H (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeParalelo_8', label: 'Anclaje paralelo (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeAjustable_8', label: 'Anclaje ajustable 60/80 (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeBarra30_8', label: 'Anclaje barra 30cm (8m)', compatibleHeights: ['8m'] },
+  { value: 'AnclajeBarra60_8', label: 'Anclaje barra 60cm (8m)', compatibleHeights: ['8m'] },
 ]
+
+// Legacy exports for backward compatibility
+export const ANCHOR_TYPES: SelectOption[] = ANCHOR_TYPES_WITH_COMPAT.map(a => ({
+  value: a.value,
+  label: a.label
+}))
 
 export const ANCHOR_SEPARATION_OPTIONS: SelectOption[] = [
   { value: '15cm', label: '15cm' },
@@ -229,8 +318,50 @@ export const PROTECTION_LEVELS: SelectOption[] = [
   { value: 'IV', label: 'NIVEL IV' },
 ]
 
+export const PROTECTION_LEVELS_CTE: SelectOption[] = [
+  { value: '1', label: 'NIVEL 1' },
+  { value: '2', label: 'NIVEL 2' },
+  { value: '3', label: 'NIVEL 3' },
+  { value: '4', label: 'NIVEL 4' },
+]
+
 // === PASO 6: PROTECCIÓN EXTERNA ===
 
+// Regla 7: Material del conductor -> Naturalezas/variantes (jerárquica)
+export interface ConductorMaterialConfig {
+  type: string
+  typeLabel: string
+  natures: SelectOption[]
+}
+
+export const CONDUCTOR_MATERIALS_HIERARCHICAL: ConductorMaterialConfig[] = [
+  {
+    type: 'Pletina',
+    typeLabel: 'Pletina',
+    natures: [
+      { value: 'Pletina_CuEst_30x2', label: 'Pletina cobre estañado 30x2mm' },
+      { value: 'Pletina_Al_25x3', label: 'Pletina de aluminio 25x3mm' },
+    ],
+  },
+  {
+    type: 'Cable',
+    typeLabel: 'Cable trenzado',
+    natures: [
+      { value: 'Cable_Cu_50', label: 'Cable Cu trenzado 50mm²' },
+      { value: 'Cable_Cu_70', label: 'Cable Cu trenzado 70mm²' },
+    ],
+  },
+  {
+    type: 'Redondo',
+    typeLabel: 'Redondo',
+    natures: [
+      { value: 'Redondo_Cu_8', label: 'Redondo de cobre Ø8mm' },
+      { value: 'Redondo_Al_8', label: 'Redondo aleación Al ø8mm' },
+    ],
+  },
+]
+
+// Legacy exports for backward compatibility
 export const CONDUCTOR_TYPES: SelectOption[] = [
   { value: 'cable_50mm2', label: 'Cable de cobre 50mm²' },
   { value: 'cable_70mm2', label: 'Cable de cobre 70mm²' },
@@ -243,6 +374,48 @@ export const CONDUCTOR_MATERIALS: SelectOption[] = [
   { value: 'aluminum', label: 'Aluminio' },
   { value: 'galvanized_steel', label: 'Acero galvanizado' },
 ]
+
+// Regla 10: Fijaciones compatibles con materiales
+export interface FixingMaterialCompat {
+  value: string
+  label: string
+  compatibleMaterials: string[] // Array de materiales compatibles (usar el value de las naturalezas)
+}
+
+export const FIXING_TYPES_WITH_COMPAT: FixingMaterialCompat[] = [
+  {
+    value: 'Grapa_laton_cable',
+    label: 'Grapa latón para cable Ø6-10mm',
+    compatibleMaterials: ['Cable_Cu_50', 'Cable_Cu_70', 'Redondo_Cu_8'],
+  },
+  {
+    value: 'Grapa_nylon',
+    label: 'Grapa nylon cable o pletina 17mm',
+    compatibleMaterials: [
+      'Pletina_CuEst_30x2',
+      'Pletina_Al_25x3',
+      'Cable_Cu_50',
+      'Cable_Cu_70',
+      'Redondo_Cu_8',
+      'Redondo_Al_8',
+    ],
+  },
+  {
+    value: 'Grapa_inox_cable',
+    label: 'Grapa inox para cable Ø6-10mm',
+    compatibleMaterials: ['Cable_Cu_50', 'Cable_Cu_70', 'Redondo_Cu_8', 'Redondo_Al_8'],
+  },
+  {
+    value: 'Grapa_hebilla_inox',
+    label: 'Grapa hebilla inox 30x2-30x3.5mm',
+    compatibleMaterials: ['Pletina_CuEst_30x2', 'Pletina_Al_25x3'],
+  },
+]
+
+export const FIXING_TYPES: SelectOption[] = FIXING_TYPES_WITH_COMPAT.map(f => ({
+  value: f.value,
+  label: f.label,
+}))
 
 export const ROOF_TYPES: SelectOption[] = [
   { value: 'flat', label: 'Plana' },
@@ -295,6 +468,65 @@ export function getModelsByType(type: string | undefined): string[] {
 export function getHeadType(model: string): 'DAT CONTROLER® REMOTE' | 'DAT CONTROLER® PLUS' | undefined {
   for (const config of HEAD_CONFIGS) {
     if (config.models.includes(model)) {
+      return config.type
+    }
+  }
+  return undefined
+}
+
+/**
+ * Regla 4: Gets available heights for a mast type
+ */
+export function getHeightsByMastType(mastType: string | undefined): SelectOption[] {
+  const config = MAST_HEIGHTS_BY_TYPE.find((c) => c.mastType === mastType)
+  return config?.heights || []
+}
+
+/**
+ * Regla 6: Gets anchors compatible with a specific mast height
+ * Only applies to Mástil type
+ */
+export function getAnchorsByHeight(height: string | undefined): SelectOption[] {
+  if (!height) return []
+  return ANCHOR_TYPES_WITH_COMPAT
+    .filter((anchor) => anchor.compatibleHeights.includes(height))
+    .map((anchor) => ({
+      value: anchor.value,
+      label: anchor.label,
+    }))
+}
+
+/**
+ * Regla 7: Gets natures/variants for a conductor material type
+ */
+export function getNaturesByMaterialType(materialType: string | undefined): SelectOption[] {
+  const config = CONDUCTOR_MATERIALS_HIERARCHICAL.find((c) => c.type === materialType)
+  return config?.natures || []
+}
+
+/**
+ * Regla 10: Gets fixings compatible with a specific material nature
+ */
+export function getFixingsByMaterial(materialNature: string | undefined): SelectOption[] {
+  if (!materialNature) {
+    // If no material selected, show all fixings
+    return FIXING_TYPES
+  }
+  return FIXING_TYPES_WITH_COMPAT
+    .filter((fixing) => fixing.compatibleMaterials.includes(materialNature))
+    .map((fixing) => ({
+      value: fixing.value,
+      label: fixing.label,
+    }))
+}
+
+/**
+ * Helper to get material type from material nature value
+ */
+export function getMaterialTypeFromNature(nature: string | undefined): string | undefined {
+  if (!nature) return undefined
+  for (const config of CONDUCTOR_MATERIALS_HIERARCHICAL) {
+    if (config.natures.some((n) => n.value === nature)) {
       return config.type
     }
   }

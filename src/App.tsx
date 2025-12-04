@@ -2,6 +2,7 @@ import { Routes, Route, Navigate, useNavigate } from 'react-router'
 import { AuthProvider, ProtectedRoute } from '@/lib/auth/mockAuth'
 import { Login } from '@/pages/Login'
 import { RiskCalculation } from '@/pages/RiskCalculation'
+import { CorporateLayout } from '@/components/CorporateLayout'
 
 /**
  * Aplicación de Cálculo de Riesgo CD-Risk
@@ -29,7 +30,9 @@ function App() {
           path="/"
           element={
             <ProtectedRoute onNotAuthenticated={() => <Navigate to="/login" replace />}>
-              <RiskCalculation />
+              <CorporateLayout>
+                <RiskCalculation />
+              </CorporateLayout>
             </ProtectedRoute>
           }
         />

@@ -1,11 +1,10 @@
+import { memo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { InfoTooltip } from '@/components/InfoTooltip'
-import { Button } from '@/components/ui/button'
-import { Sparkles } from 'lucide-react'
 
 import type { LossesStepProps } from '@/types/stepProps'
 import {
@@ -27,54 +26,13 @@ import {
   BURIED_SERVICE_TYPE_OPTIONS,
 } from '@/config/formConfig'
 
-const isDev = import.meta.env.DEV
-
-const generateMockLosses = () => {
-  const random = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]
-  const randomNum = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min
-
-  return {
-    dueToFire: random(['A', 'B']),
-    riskOfPanic: random(['C', 'D']),
-    consequencesOfDamages: random(['No aplica', 'Graves']),
-    dueToOvervoltages1: random(['Comun', 'Critico']),
-    lossOfServices: random(['No aplica', 'Interrupcion']),
-    lossOfCulturalHeritage: random(['No aplica', 'Irreversible']),
-    specialHazards: random(['Sin consecuencias', 'Riesgo']),
-    dueToFire2: random(['Comun', 'Critico']),
-    dueToOvervoltages2: random(['Comun', 'Critico']),
-    dueToStepTouchVoltages: random(['Sin riesgo', 'Riesgo']),
-    tolerableRisk: random(['1E-03', '1E-04']),
-    cableSituation: random(['Aereo', 'Enterrado', 'NoConectado']),
-    cableShielded: random(['Apantallado', 'NoApantallado']),
-    transformerMVLV: random(['SinTransformador', 'ConTransformador']),
-    aerialServicesCount: randomNum(0, 5).toString(),
-    aerialServiceType: random(['Coaxial', 'FibraOptica']),
-    buriedServicesCount: randomNum(0, 5).toString(),
-    buriedServiceType: random(['No aplica', 'Coaxial', 'FibraOptica']),
-  }
-}
-
 /**
  * Paso 3: Pérdidas
  * Basado en el diseño original de CD-Risk
  */
-export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
-  const handleAutofill = () => {
-    if (onBulkChange) {
-      onBulkChange(generateMockLosses())
-    }
-  }
+function LossesStepInner({ data, onChange, onBulkChange }: LossesStepProps) {
   return (
     <div className="space-y-4">
-      {isDev && (
-        <div className="flex justify-end">
-          <Button onClick={handleAutofill} variant="outline" size="sm" className="gap-2">
-            <Sparkles className="h-4 w-4" />
-            Autorellenar
-          </Button>
-        </div>
-      )}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Columna izquierda: Tipos de pérdidas */}
         <Card>
@@ -83,101 +41,81 @@ export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
           </CardHeader>
         <CardContent className="space-y-4">
           {/* Por incendios */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="dueToFire" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label htmlFor="dueToFire" className="flex items-center">
               Por incendios
               <InfoTooltip content="Este apartado se refiere a las consecuencias de un incendio en la estructura, evaluando el riesgo de pérdida de vidas humanas." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.dueToFire || 'A'}
-                onValueChange={(value) => onChange('dueToFire', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DUE_TO_FIRE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.dueToFire || ''} onValueChange={(value) => onChange('dueToFire', value)}>
+              <SelectTrigger id="dueToFire">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DUE_TO_FIRE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Por riesgo de pánico */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="riskOfPanic" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label htmlFor="riskOfPanic" className="flex items-center">
               Por riesgo de pánico
               <InfoTooltip content="Se evalúa si existe un riesgo de pánico significativo en la estructura, considerando el número de ocupantes y la dificultad de evacuación." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.riskOfPanic || 'C'}
-                onValueChange={(value) => onChange('riskOfPanic', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {RISK_OF_PANIC_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.riskOfPanic || ''} onValueChange={(value) => onChange('riskOfPanic', value)}>
+              <SelectTrigger id="riskOfPanic">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {RISK_OF_PANIC_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Consecuencia de los daños */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="consequencesOfDamages" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="consequencesOfDamages">
               Consecuencia de los daños
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.consequencesOfDamages || 'No aplica'}
-                onValueChange={(value) => onChange('consequencesOfDamages', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONSEQUENCES_OF_DAMAGES_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.consequencesOfDamages || ''} onValueChange={(value) => onChange('consequencesOfDamages', value)}>
+              <SelectTrigger id="consequencesOfDamages">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CONSEQUENCES_OF_DAMAGES_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Por sobretensiones */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="dueToOvervoltages1" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="dueToOvervoltages1">
               Por sobretensiones
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.dueToOvervoltages1 || 'Comun'}
-                onValueChange={(value) => onChange('dueToOvervoltages1', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DUE_TO_OVERVOLTAGES_1_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.dueToOvervoltages1 || ''} onValueChange={(value) => onChange('dueToOvervoltages1', value)}>
+              <SelectTrigger id="dueToOvervoltages1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DUE_TO_OVERVOLTAGES_1_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Separator className="my-4" />
@@ -185,27 +123,22 @@ export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
           {/* TIPO 2: PÉRDIDAS DE SERVICIOS ESENCIALES */}
           <CardTitle className="text-primary">TIPO 2: PÉRDIDAS DE SERVICIOS ESENCIALES</CardTitle>
 
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="lossOfServices" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="lossOfServices">
               Pérdida de servicios
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.lossOfServices || 'No aplica'}
-                onValueChange={(value) => onChange('lossOfServices', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LOSS_OF_SERVICES_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.lossOfServices || ''} onValueChange={(value) => onChange('lossOfServices', value)}>
+              <SelectTrigger id="lossOfServices">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LOSS_OF_SERVICES_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Separator className="my-4" />
@@ -213,153 +146,131 @@ export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
           {/* TIPO 3: PÉRDIDAS DE PATRIMONIO CULTURAL */}
           <CardTitle className="text-primary">TIPO 3: PÉRDIDAS DE PATRIMONIO CULTURAL</CardTitle>
 
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="lossOfCulturalHeritage" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="lossOfCulturalHeritage">
               Pérdida de patrimonio
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.lossOfCulturalHeritage || 'No aplica'}
-                onValueChange={(value) => onChange('lossOfCulturalHeritage', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LOSS_OF_CULTURAL_HERITAGE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.lossOfCulturalHeritage || ''} onValueChange={(value) => onChange('lossOfCulturalHeritage', value)}>
+              <SelectTrigger id="lossOfCulturalHeritage">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LOSS_OF_CULTURAL_HERITAGE_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Separator className="my-4" />
 
           {/* TIPO 4: PÉRDIDAS ECONÓMICAS */}
-          <CardTitle className="text-primary">TIPO 4: PÉRDIDAS ECONÓMICAS</CardTitle>
+          <CardTitle className="text-primary mb-4">TIPO 4: PÉRDIDAS ECONÓMICAS</CardTitle>
 
-          {/* Riesgos especiales */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="specialHazards" className="col-span-2">
-              Riesgos especiales
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.specialHazards || 'Sin consecuencias'}
-                onValueChange={(value) => onChange('specialHazards', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SPECIAL_HAZARDS_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Columna izquierda */}
+            <div className="space-y-4">
+              {/* Riesgos especiales */}
+              <div className="space-y-2">
+                <Label htmlFor="specialHazards">
+                  Riesgos especiales
+                </Label>
+                <Select value={data.specialHazards || ''} onValueChange={(value) => onChange('specialHazards', value)}>
+                  <SelectTrigger id="specialHazards">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SPECIAL_HAZARDS_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Por incendios */}
+              <div className="space-y-2">
+                <Label htmlFor="dueToFire2">
+                  Por incendios
+                </Label>
+                <Select value={data.dueToFire2 || ''} onValueChange={(value) => onChange('dueToFire2', value)}>
+                  <SelectTrigger id="dueToFire2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DUE_TO_FIRE_2_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Por sobretensiones */}
+              <div className="space-y-2">
+                <Label htmlFor="dueToOvervoltages2" className="flex items-center">
+                  Por sobretensiones
+                  <InfoTooltip content="Evaluación de pérdidas económicas debido a daños en equipos electrónicos por sobretensiones." />
+                </Label>
+                <Select value={data.dueToOvervoltages2 || ''} onValueChange={(value) => onChange('dueToOvervoltages2', value)}>
+                  <SelectTrigger id="dueToOvervoltages2">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DUE_TO_OVERVOLTAGES_2_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          {/* Por incendios */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="dueToFire2" className="col-span-2">
-              Por incendios
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.dueToFire2 || 'Comun'}
-                onValueChange={(value) => onChange('dueToFire2', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DUE_TO_FIRE_2_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+            {/* Columna derecha */}
+            <div className="space-y-4">
+              {/* Por tensión paso/contacto */}
+              <div className="space-y-2">
+                <Label htmlFor="dueToStepTouchVoltages">
+                  Por tensión paso/contacto
+                </Label>
+                <Select value={data.dueToStepTouchVoltages || ''} onValueChange={(value) => onChange('dueToStepTouchVoltages', value)}>
+                  <SelectTrigger id="dueToStepTouchVoltages">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DUE_TO_STEP_TOUCH_VOLTAGES_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Por sobretensiones */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="dueToOvervoltages2" className="col-span-2 flex items-center">
-              Por sobretensiones
-              <InfoTooltip content="Evaluación de pérdidas económicas debido a daños en equipos electrónicos por sobretensiones." />
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.dueToOvervoltages2 || 'Comun'}
-                onValueChange={(value) => onChange('dueToOvervoltages2', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DUE_TO_OVERVOLTAGES_2_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Por tensión paso/contacto */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="dueToStepTouchVoltages" className="col-span-2">
-              Por tensión paso/contacto
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.dueToStepTouchVoltages || 'Sin riesgo'}
-                onValueChange={(value) => onChange('dueToStepTouchVoltages', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DUE_TO_STEP_TOUCH_VOLTAGES_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Riesgo tolerable de pérdidas */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="tolerableRisk" className="col-span-2 flex items-center">
-              Riesgo tolerable de pérdidas
-              <InfoTooltip content="Es la probabilidad máxima anual de pérdida que se considera aceptable (Rt). Se define por la normativa en función de la clase de riesgo (por ejemplo, 1 en 10.000 años para un riesgo crítico)." />
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.tolerableRisk || '1E-03'}
-                onValueChange={(value) => onChange('tolerableRisk', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TOLERABLE_RISK_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Riesgo tolerable de pérdidas */}
+              <div className="space-y-2">
+                <Label htmlFor="tolerableRisk" className="flex items-center">
+                  Riesgo tolerable de pérdidas
+                  <InfoTooltip content="Es la probabilidad máxima anual de pérdida que se considera aceptable (Rt). Se define por la normativa en función de la clase de riesgo (por ejemplo, 1 en 10.000 años para un riesgo crítico)." />
+                </Label>
+                <Select value={data.tolerableRisk || ''} onValueChange={(value) => onChange('tolerableRisk', value)}>
+                  <SelectTrigger id="tolerableRisk">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TOLERABLE_RISK_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -372,77 +283,62 @@ export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Situación del cable */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="cableSituation" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label htmlFor="cableSituation" className="flex items-center">
               Situación del cable
               <InfoTooltip content="- Aéreo: Distribución eléctrica al edificio mediante un cable aéreo. - Enterrado: Distribución eléctrica a la estructura mediante un cable subterráneo. - No conectado: No hay línea eléctrica conectada a la estructura." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.cableSituation || 'Aereo'}
-                onValueChange={(value) => onChange('cableSituation', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CABLE_SITUATION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.cableSituation || ''} onValueChange={(value) => onChange('cableSituation', value)}>
+              <SelectTrigger id="cableSituation">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CABLE_SITUATION_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Cable apantallado */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="cableShielded" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label htmlFor="cableShielded" className="flex items-center">
               Cable apantallado
               <InfoTooltip content="Se refiere a si el cable de suministro cuenta con un apantallamiento metálico que ofrece cierta protección natural contra interferencias y sobretensiones." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.cableShielded || 'Apantallado'}
-                onValueChange={(value) => onChange('cableShielded', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {CABLE_SHIELDED_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.cableShielded || ''} onValueChange={(value) => onChange('cableShielded', value)}>
+              <SelectTrigger id="cableShielded">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CABLE_SHIELDED_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Transformador MT/BT */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="transformerMVLV" className="col-span-2">
+          <div className="space-y-2">
+            <Label htmlFor="transformerMVLV">
               Transformador MT/BT
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.transformerMVLV || 'SinTransformador'}
-                onValueChange={(value) => onChange('transformerMVLV', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TRANSFORMER_MVLV_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <Select value={data.transformerMVLV || ''} onValueChange={(value) => onChange('transformerMVLV', value)}>
+              <SelectTrigger id="transformerMVLV">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TRANSFORMER_MVLV_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <Separator className="my-4" />
@@ -450,33 +346,25 @@ export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
           {/* OTROS SERVICIOS AÉREOS */}
           <CardTitle className="text-primary">OTROS SERVICIOS AÉREOS</CardTitle>
 
-          {/* Número de servicios */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="aerialServicesCount" className="col-span-2">
-              Número de servicios
-            </Label>
-            <div className="col-span-3">
+          {/* Número de servicios + Tipo de cable en la misma fila */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="aerialServicesCount">
+                Número de servicios
+              </Label>
               <Input
                 id="aerialServicesCount"
-                type="number"
-                value={data.aerialServicesCount || '1'}
+                value={data.aerialServicesCount || ''}
                 onChange={(e) => onChange('aerialServicesCount', e.target.value)}
-                className="w-full"
               />
             </div>
-          </div>
 
-          {/* Tipo de cable */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="aerialServiceType" className="col-span-2">
-              Tipo de cable
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.aerialServiceType || 'Coaxial'}
-                onValueChange={(value) => onChange('aerialServiceType', value)}
-              >
-                <SelectTrigger>
+            <div className="space-y-2">
+              <Label htmlFor="aerialServiceType">
+                Tipo de cable
+              </Label>
+              <Select value={data.aerialServiceType || ''} onValueChange={(value) => onChange('aerialServiceType', value)}>
+                <SelectTrigger id="aerialServiceType">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -495,33 +383,25 @@ export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
           {/* OTROS SERVICIOS ENTERRADOS */}
           <CardTitle className="text-primary">OTROS SERVICIOS ENTERRADOS</CardTitle>
 
-          {/* Número de servicios */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="buriedServicesCount" className="col-span-2">
-              Número de servicios
-            </Label>
-            <div className="col-span-3">
+          {/* Número de servicios + Tipo de cable en la misma fila */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="buriedServicesCount">
+                Número de servicios
+              </Label>
               <Input
                 id="buriedServicesCount"
-                type="number"
-                value={data.buriedServicesCount || '0'}
+                value={data.buriedServicesCount || ''}
                 onChange={(e) => onChange('buriedServicesCount', e.target.value)}
-                className="w-full"
               />
             </div>
-          </div>
 
-          {/* Tipo de cable */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="buriedServiceType" className="col-span-2">
-              Tipo de cable
-            </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.buriedServiceType || 'No aplica'}
-                onValueChange={(value) => onChange('buriedServiceType', value)}
-              >
-                <SelectTrigger>
+            <div className="space-y-2">
+              <Label htmlFor="buriedServiceType">
+                Tipo de cable
+              </Label>
+              <Select value={data.buriedServiceType || ''} onValueChange={(value) => onChange('buriedServiceType', value)}>
+                <SelectTrigger id="buriedServiceType">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -540,3 +420,5 @@ export function LossesStep({ data, onChange, onBulkChange }: LossesStepProps) {
     </div>
   )
 }
+
+export const LossesStep = memo(LossesStepInner)

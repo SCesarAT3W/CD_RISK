@@ -90,7 +90,7 @@ const ProtectionZoneCircle = React.memo(({
   onDragEnd
 }: ProtectionZoneCircleProps) => {
   // Estilos diferentes para el pararrayos seleccionado
-  const strokeColor = isSelected ? '#00ff00' : '#f7a800'
+  const strokeColor = isSelected ? '#3b82f6' : '#f7a800' // Azul en lugar de verde
   const strokeWidth = isSelected ? 4 : 2
   const fillOpacity = isSelected ? 0.1 : 0
   const iconSize = isSelected ? 28 : 24
@@ -187,16 +187,36 @@ function ProtectionSchemeCanvas({
   const handleZoneDragEnd = useCallback((zone: ProtectionZone, e: KonvaEventObject<DragEvent>) => {
     e.cancelBubble = true
     setIsDraggingZone(false)
-    const newX = e.target.x()
-    const newY = e.target.y()
+    let newX = e.target.x()
+    let newY = e.target.y()
 
-    // Confirmar la posición final (sin restricciones de área)
+    // Validar que el pararrayos esté dentro del área del edificio
+    if (areas.length > 0) {
+      const area = areas[0] // Primera área (edificio)
+      const points = area.points
+
+      // Calcular límites del área
+      const minX = Math.min(...points.filter((_, i) => i % 2 === 0))
+      const maxX = Math.max(...points.filter((_, i) => i % 2 === 0))
+      const minY = Math.min(...points.filter((_, i) => i % 2 === 1))
+      const maxY = Math.max(...points.filter((_, i) => i % 2 === 1))
+
+      // Restringir posición a los límites del edificio
+      newX = Math.max(minX, Math.min(maxX, newX))
+      newY = Math.max(minY, Math.min(maxY, newY))
+
+      // Actualizar posición visual del elemento
+      e.target.x(newX)
+      e.target.y(newY)
+    }
+
+    // Confirmar la posición final
     const newZones = protectionZones.map((z) =>
       z.id === zone.id ? { ...z, x: newX, y: newY } : z
     )
     setProtectionZones(newZones)
     onZonesChange?.(newZones)
-  }, [protectionZones, onZonesChange])
+  }, [protectionZones, areas, onZonesChange])
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [editingMeasurement, setEditingMeasurement] = useState<{
     areaId: string
@@ -322,12 +342,9 @@ function ProtectionSchemeCanvas({
     }
   }, [initialZonesSerializ, dynamicPixelsPerMeter, cabezalModel, protectionLevel])
 
-  // Verificar si un punto está cubierto por algún pararrayos
-  // Solo considera pararrayos colocados en el mapa
+  // Verifica si un punto está cubierto por algún pararrayos
   const isPointCovered = (point: Point, zones: ProtectionZone[]): boolean => {
-    return zones
-      .filter((zone) => zone.placedOnMap === true)
-      .some((zone) => {
+    return zones.some((zone) => {
         const distance = Math.sqrt(
           Math.pow(point.x - zone.x, 2) + Math.pow(point.y - zone.y, 2)
         )
@@ -1090,7 +1107,7 @@ function ProtectionSchemeCanvas({
 
       {/* Capa de overlay de área sin cobertura */}
       <Layer>
-        {areas.length > 0 && protectionZones.length > 0 && (
+        {!isDraggingZone && areas.length > 0 && protectionZones.length > 0 && (
           <>
             {/* Área completa del edificio con overlay rojo */}
             {areas.map((area) => (
@@ -1102,25 +1119,22 @@ function ProtectionSchemeCanvas({
                 listening={false}
               />
             ))}
-            {/* Áreas cubiertas (verde) para "tapar" el rojo */}
-            {/* Solo mostrar pararrayos colocados en el mapa */}
-            {protectionZones
-              .filter((zone) => zone.placedOnMap === true)
-              .map((zone) => (
-                <Circle
-                  key={`coverage-${zone.id}`}
-                  x={zone.x}
-                  y={zone.y}
-                  radius={zone.radius}
-                  fill="rgba(34, 197, 94, 0.2)"
-                  listening={false}
-                />
-              ))}
+            {/* Áreas cubiertas (azul) para "tapar" el rojo */}
+            {protectionZones.map((zone) => (
+              <Circle
+                key={`coverage-${zone.id}`}
+                x={zone.x}
+                y={zone.y}
+                radius={zone.radius}
+                fill="rgba(59, 130, 246, 0.2)"
+                listening={false}
+              />
+            ))}
           </>
         )}
       </Layer>
     </>
-  ), [areas, buildingLength, buildingWidth, currentArea, customDistances, handleEditDistance, hoveredMeasurement, mode, protectionZones, renderGrid, uploadedImage])
+  ), [areas, buildingLength, buildingWidth, currentArea, customDistances, handleEditDistance, hoveredMeasurement, isDraggingZone, mode, protectionZones, renderGrid, uploadedImage])
 
   return (
     <div className="space-y-4">
@@ -1140,7 +1154,13 @@ function ProtectionSchemeCanvas({
             <Button
               size="lg"
               variant="secondary"
-              onClick={() => setMode('grid')}
+              onClick={() => {
+                setMode('grid')
+                // Generar automáticamente el rectángulo del edificio al abrir la cuadrícula
+                setTimeout(() => {
+                  generateRectangleArea()
+                }, 100)
+              }}
             >
               <LayoutGrid className="mr-2 h-5 w-5" />
               Dibujar sobre cuadrícula
@@ -1289,20 +1309,18 @@ function ProtectionSchemeCanvas({
 
               {/* Capa de zonas de protección */}
               <Layer>
-                {/* Solo mostrar pararrayos colocados en el mapa */}
-                {protectionZones
-                  .filter((zone) => zone.placedOnMap === true)
-                  .map((zone) => (
-                    <ProtectionZoneCircle
-                      key={zone.id}
-                      zone={zone}
-                      isSelected={zone.id === selectedZoneId}
-                      onZoneClick={handleZoneClick}
-                      onDragStart={handleZoneDragStart}
-                      onDragMove={handleZoneDragMove}
-                      onDragEnd={handleZoneDragEnd}
-                    />
-                  ))}
+                {/* Mostrar todos los pararrayos */}
+                {protectionZones.map((zone) => (
+                  <ProtectionZoneCircle
+                    key={zone.id}
+                    zone={zone}
+                    isSelected={zone.id === selectedZoneId}
+                    onZoneClick={handleZoneClick}
+                    onDragStart={handleZoneDragStart}
+                    onDragMove={handleZoneDragMove}
+                    onDragEnd={handleZoneDragEnd}
+                  />
+                ))}
               </Layer>
             </Stage>
           </div>

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { memo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Calculator } from 'lucide-react'
 import type { ResultsStepProps } from '@/types/stepProps'
+import { determineProtectionLevel } from '@/lib/calculations/riskCalculations'
 
 interface RiskResult {
   type: string
@@ -17,7 +18,7 @@ interface RiskResult {
  * Paso 4: Resultados del Cálculo
  * Basado en el diseño original de CD-Risk
  */
-export function ResultsStep({ data, onChange }: ResultsStepProps) {
+function ResultsStepInner({ data, onChange }: ResultsStepProps) {
   // Datos iniciales de riesgos (simulados - en producción vendrían de cálculos reales)
   const initialRisks: RiskResult[] = [
     {
@@ -56,17 +57,18 @@ export function ResultsStep({ data, onChange }: ResultsStepProps) {
   const [internalProtection, setInternalProtection] = useState(data.internalProtection || 'Sin protección')
   const [solutionCalculated, setSolutionCalculated] = useState(!!data.calculatedRisks)
 
-  // Sincronizar con los datos del formulario cuando cambian (ej: navegar entre pasos)
-  useEffect(() => {
-    if (data.calculatedRisks) {
-      setRisks(data.calculatedRisks)
-      setProtectionLevel(data.protectionLevel ? `NIVEL ${data.protectionLevel}` : 'Sin protección')
-      setInternalProtection(data.internalProtection || 'Sin protección')
-      setSolutionCalculated(true)
-    }
-  }, [data.calculatedRisks, data.protectionLevel, data.internalProtection])
-
   const handleCalculateSolution = () => {
+    // Verificar que hay datos suficientes antes de calcular
+    if (!data.calculationNormative) {
+      alert('Por favor selecciona una normativa en el Paso 1')
+      return
+    }
+
+    if (!data.height && !data.typeOfStructure) {
+      alert('Por favor completa la altura o tipo de estructura en el Paso 2')
+      return
+    }
+
     // Simular el cálculo de la solución
     const updatedRisks = risks.map((risk, index) => {
       if (index === 0) {
@@ -84,14 +86,28 @@ export function ResultsStep({ data, onChange }: ResultsStepProps) {
       }
     })
 
+    // Determinar nivel de protección según normativa seleccionada
+    const normative = data.calculationNormative || 'lightning' // Por defecto IEC 62305
+    const R1_value = parseFloat(risks[0].initialRisk) || 9.70e-4
+    const structureHeight = data.height ? parseFloat(data.height) : 20 // Convertir string a number
+
+    const calculatedLevel = determineProtectionLevel(
+      normative,
+      R1_value,
+      data.typeOfStructure,
+      structureHeight
+    )
+
+    const levelText = calculatedLevel === 'none' ? 'Sin protección' : `NIVEL ${calculatedLevel}`
+
     setRisks(updatedRisks)
-    setProtectionLevel('NIVEL III')
+    setProtectionLevel(levelText)
     setInternalProtection('Protección Coordinada')
     setSolutionCalculated(true)
 
     // Guardar en el estado del formulario
     onChange('calculatedRisks', updatedRisks)
-    onChange('protectionLevel', 'III')
+    onChange('protectionLevel', calculatedLevel === 'none' ? undefined : calculatedLevel)
     onChange('internalProtection', 'Protección Coordinada')
   }
 
@@ -145,11 +161,10 @@ export function ResultsStep({ data, onChange }: ResultsStepProps) {
             <Button
               size="lg"
               onClick={handleCalculateSolution}
-              disabled={solutionCalculated}
               className="bg-primary hover:bg-primary/90"
             >
               <Calculator className="mr-2 h-5 w-5" />
-              Calcular Solución
+              {solutionCalculated ? 'Recalcular Solución' : 'Calcular Solución'}
             </Button>
           </div>
         </CardContent>
@@ -194,3 +209,23 @@ export function ResultsStep({ data, onChange }: ResultsStepProps) {
     </div>
   )
 }
+
+// Comparador personalizado: solo re-renderizar si cambian los campos de este Step
+export const ResultsStep = memo(ResultsStepInner, (prevProps, nextProps) => {
+  const prevData = prevProps.data
+  const nextData = nextProps.data
+
+  // Comparar arrays de forma profunda
+  const risksEqual =
+    JSON.stringify(prevData.calculatedRisks) === JSON.stringify(nextData.calculatedRisks)
+
+  return (
+    risksEqual &&
+    prevData.protectionLevel === nextData.protectionLevel &&
+    prevData.internalProtection === nextData.internalProtection &&
+    prevData.calculationNormative === nextData.calculationNormative &&
+    prevData.height === nextData.height &&
+    prevData.typeOfStructure === nextData.typeOfStructure &&
+    prevProps.onChange === nextProps.onChange
+  )
+})

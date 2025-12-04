@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { CorporateLayout } from '@/components/CorporateLayout'
+import { useState, useCallback } from 'react'
 import { CorporateStepper, type Step } from '@/components/CorporateStepper'
 import {
   Breadcrumb,
@@ -58,14 +57,14 @@ export function RiskCalculation() {
 
   const currentStepData = steps[currentStep]
 
-  const handleStepClick = (index: number) => {
+  const handleStepClick = useCallback((index: number) => {
     // Solo permitir navegar a pasos completados o el actual
     if (index <= currentStep) {
       setCurrentStep(index)
     }
-  }
+  }, [currentStep])
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     // Solo validar pasos críticos (project_data y dimensions)
     const currentStepId = steps[currentStep].id
     const criticalSteps = ['project_data', 'dimensions']
@@ -79,25 +78,26 @@ export function RiskCalculation() {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1)
     }
-  }
+  }, [currentStep, steps, validateFormStep])
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (currentStep > 0) {
       setCurrentStep(currentStep - 1)
     }
-  }
+  }, [currentStep])
 
-  const handleDataChange = (field: string, value: unknown) => {
+  // Memoizar el callback onChange para evitar re-renders innecesarios
+  const handleDataChange = useCallback((field: string, value: unknown) => {
     // Usar TanStack Query mutation para actualizar el formulario
     updateField(field, value)
-  }
+  }, [updateField])
 
-  const handleFinish = () => {
+  const handleFinish = useCallback(() => {
     // Abrir modal con resultado JSON
     setShowResultModal(true)
-  }
+  }, [])
 
-  const handleCopyJSON = async () => {
+  const handleCopyJSON = useCallback(async () => {
     const jsonString = JSON.stringify(formData, null, 2)
     try {
       await navigator.clipboard.writeText(jsonString)
@@ -106,9 +106,9 @@ export function RiskCalculation() {
     } catch (err) {
       logger.error('Error copying to clipboard', err as Error)
     }
-  }
+  }, [formData])
 
-  const handleDownloadJSON = () => {
+  const handleDownloadJSON = useCallback(() => {
     const jsonString = JSON.stringify(formData, null, 2)
     const blob = new Blob([jsonString], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
@@ -119,19 +119,17 @@ export function RiskCalculation() {
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
-  }
+  }, [formData])
 
   // Mostrar loading mientras se cargan los datos
   if (isLoading) {
     return (
-      <CorporateLayout>
-        <div className="flex min-h-[60vh] items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-muted-foreground">Cargando formulario...</p>
-          </div>
+      <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-6">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando formulario...</p>
         </div>
-      </CorporateLayout>
+      </div>
     )
   }
 
@@ -180,7 +178,7 @@ export function RiskCalculation() {
   }
 
   return (
-    <CorporateLayout>
+    <div className="container mx-auto px-4 py-4">
       {/* Breadcrumbs */}
       <Breadcrumb className="mb-2">
         <BreadcrumbList className="rounded-md bg-muted p-3">
@@ -206,7 +204,7 @@ export function RiskCalculation() {
 
       {/* Contenido del paso actual */}
       <Card className="shadow-sm">
-        <CardContent className="p-6">
+        <CardContent>
           {renderStepContent()}
 
           {/* Botones de navegación */}
@@ -223,7 +221,6 @@ export function RiskCalculation() {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
               <span>Paso {currentStep + 1} de {steps.length}</span>
-              {isSaving && <span className="text-primary">(Guardando...)</span>}
             </div>
 
             <Button
@@ -277,6 +274,6 @@ export function RiskCalculation() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </CorporateLayout>
+    </div>
   )
 }

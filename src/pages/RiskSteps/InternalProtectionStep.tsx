@@ -154,8 +154,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Trifásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.principalPanel400v || '0'}
+                    value={data.principalPanel400v || ''}
                     onChange={(e) => onChange('principalPanel400v', e.target.value)}
                     className="w-20"
                   />
@@ -182,8 +181,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Trifásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.principalPanel230v || '0'}
+                    value={data.principalPanel230v || ''}
                     onChange={(e) => onChange('principalPanel230v', e.target.value)}
                     className="w-20"
                   />
@@ -210,8 +208,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Monofásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.principalPanel230vM || '0'}
+                    value={data.principalPanel230vM || ''}
                     onChange={(e) => onChange('principalPanel230vM', e.target.value)}
                     className="w-20"
                   />
@@ -223,8 +220,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Monofásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.principalPanel120vM || '0'}
+                    value={data.principalPanel120vM || ''}
                     onChange={(e) => onChange('principalPanel120vM', e.target.value)}
                     className="w-20"
                   />
@@ -257,8 +253,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Trifásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.secondaryPanel400v || '0'}
+                    value={data.secondaryPanel400v || ''}
                     onChange={(e) => onChange('secondaryPanel400v', e.target.value)}
                     className="w-20"
                   />
@@ -285,8 +280,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Trifásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.secondaryPanel230v || '0'}
+                    value={data.secondaryPanel230v || ''}
                     onChange={(e) => onChange('secondaryPanel230v', e.target.value)}
                     className="w-20"
                   />
@@ -313,8 +307,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Monofásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.secondaryPanel230vM || '0'}
+                    value={data.secondaryPanel230vM || ''}
                     onChange={(e) => onChange('secondaryPanel230vM', e.target.value)}
                     className="w-20"
                   />
@@ -326,8 +319,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Monofásico</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.secondaryPanel120vM || '0'}
+                    value={data.secondaryPanel120vM || ''}
                     onChange={(e) => onChange('secondaryPanel120vM', e.target.value)}
                     className="w-20"
                   />
@@ -361,8 +353,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Líneas analógicas a proteger</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.analogLinesNumber || '0'}
+                    value={data.analogLinesNumber || ''}
                     onChange={(e) => onChange('analogLinesNumber', e.target.value)}
                     className="w-28"
                   />
@@ -372,8 +363,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Líneas digitales a proteger</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.digitalLinesNumber || '0'}
+                    value={data.digitalLinesNumber || ''}
                     onChange={(e) => onChange('digitalLinesNumber', e.target.value)}
                     className="w-28"
                   />
@@ -384,7 +374,6 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
           <div className="mt-4 flex items-center justify-between">
             <Label className="font-bold">Número total de líneas a proteger</Label>
             <Input
-              type="number"
               value={
                 (parseInt(data.analogLinesNumber) || 0) + (parseInt(data.digitalLinesNumber) || 0)
               }
@@ -413,8 +402,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Líneas Ethernet (RJ45)</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.ethernetLines || '0'}
+                    value={data.ethernetLines || ''}
                     onChange={(e) => onChange('ethernetLines', e.target.value)}
                     className="w-28"
                   />
@@ -424,8 +412,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Líneas de datos 5v</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.busLines5v || '0'}
+                    value={data.busLines5v || ''}
                     onChange={(e) => onChange('busLines5v', e.target.value)}
                     className="w-28"
                   />
@@ -435,8 +422,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Líneas de datos 12v</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.serialLines12v || '0'}
+                    value={data.serialLines12v || ''}
                     onChange={(e) => onChange('serialLines12v', e.target.value)}
                     className="w-28"
                   />
@@ -446,8 +432,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Líneas de datos 24v</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.controlLines24v || '0'}
+                    value={data.controlLines24v || ''}
                     onChange={(e) => onChange('controlLines24v', e.target.value)}
                     className="w-28"
                   />
@@ -457,8 +442,7 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
                 <TableCell>Líneas de datos 48v</TableCell>
                 <TableCell>
                   <Input
-                    type="number"
-                    value={data.controlLines48v || '0'}
+                    value={data.controlLines48v || ''}
                     onChange={(e) => onChange('controlLines48v', e.target.value)}
                     className="w-28"
                   />
@@ -469,7 +453,6 @@ export function InternalProtectionStep({ data, onChange, onBulkChange }: Interna
           <div className="mt-4 flex items-center justify-between">
             <Label className="font-bold">Número total de líneas a proteger</Label>
             <Input
-              type="number"
               value={
                 (parseInt(data.ethernetLines) || 0) +
                 (parseInt(data.busLines5v) || 0) +

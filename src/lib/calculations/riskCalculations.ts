@@ -452,3 +452,60 @@ export function compareProtectionScenarios(
       !proposedResult.comparison.R3_needsProtection,
   }
 }
+
+/**
+ * Determina el nivel de protección según la normativa seleccionada
+ *
+ * @param normative - Normativa a aplicar ('lightning' = IEC 62305, 'cte' = CTE DB-SUA-8)
+ * @param R1 - Riesgo R1 (pérdida de vidas humanas)
+ * @param structureType - Tipo de estructura
+ * @param structureHeight - Altura de la estructura (metros)
+ * @returns Nivel de protección recomendado (I-IV) o 'none' si no necesita
+ */
+export function determineProtectionLevel(
+  normative: 'lightning' | 'cte',
+  R1: number,
+  structureType?: string,
+  structureHeight?: number
+): 'I' | 'II' | 'III' | 'IV' | '1' | '2' | '3' | '4' | 'none' {
+  if (normative === 'cte') {
+    // CTE DB-SUA-8: Criterios simplificados
+    // El CTE determina el nivel basándose principalmente en la altura
+    // CTE usa números arábigos (1, 2, 3, 4) en lugar de romanos
+
+    // Por altura del edificio (criterio principal del CTE)
+    if (structureHeight) {
+      if (structureHeight >= 43) {
+        return '1' // Edificios muy altos - CTE usa números normales
+      } else if (structureHeight >= 20) {
+        return '2' // Edificios altos
+      } else if (structureHeight >= 15) {
+        return '3' // Edificios medios
+      } else if (structureHeight >= 10) {
+        return '4' // Edificios bajos
+      }
+    }
+
+    // Si no hay altura pero R1 supera tolerable, nivel 3 por defecto
+    if (R1 > TOLERABLE_RISK.R1) {
+      return '3'
+    }
+
+    return 'none'
+  } else {
+    // IEC 62305: Determinación basada en el riesgo calculado
+    // Niveles según factor de superación del riesgo tolerable
+
+    if (R1 > 10 * TOLERABLE_RISK.R1) {
+      return 'I' // Riesgo muy alto - Nivel I (eficiencia 98%)
+    } else if (R1 > 5 * TOLERABLE_RISK.R1) {
+      return 'II' // Riesgo alto - Nivel II (eficiencia 95%)
+    } else if (R1 > 2 * TOLERABLE_RISK.R1) {
+      return 'III' // Riesgo moderado - Nivel III (eficiencia 90%)
+    } else if (R1 > TOLERABLE_RISK.R1) {
+      return 'IV' // Riesgo bajo pero supera tolerable - Nivel IV (eficiencia 80%)
+    }
+
+    return 'none' // No necesita protección
+  }
+}

@@ -1,11 +1,12 @@
 import { Link } from 'react-router'
+import { memo } from 'react'
 import { Facebook, Linkedin, Youtube } from 'lucide-react'
 
 /**
  * Footer corporativo de Aplicaciones Tecnológicas
  * Replicando el diseño original con React y Tailwind
  */
-export function CorporateFooter() {
+function CorporateFooterComponent() {
   return (
     <footer className="mt-auto bg-primary py-4 text-primary-foreground/50">
       <div className="container mx-auto px-4">
@@ -88,3 +89,7 @@ export function CorporateFooter() {
     </footer>
   )
 }
+
+// Evita re-render innecesario si el padre cambia
+export const CorporateFooter = memo(CorporateFooterComponent)
+CorporateFooter.displayName = 'CorporateFooter'

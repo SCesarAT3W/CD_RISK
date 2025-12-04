@@ -1,12 +1,11 @@
+import { memo } from 'react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CardSelect } from '@/components/ui/card-select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { InfoTooltip } from '@/components/InfoTooltip'
-import { Button } from '@/components/ui/button'
-import { Sparkles } from 'lucide-react'
 
 import type { DimensionsStepProps } from '@/types/stepProps'
 import {
@@ -17,39 +16,11 @@ import {
   GROUND_TYPE_OPTIONS,
 } from '@/config/formConfig'
 
-const isDev = import.meta.env.DEV
-
-const generateMockDimensions = () => {
-  const randomNum = (min: number, max: number) =>
-    (Math.random() * (max - min) + min).toFixed(2)
-  const random = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]
-
-  return {
-    length: randomNum(30, 150),
-    width: randomNum(20, 100),
-    height: randomNum(8, 40),
-    protrusionHeight: randomNum(0, 10),
-    typeOfStructure: random(['Hormigon', 'Metal', 'Madera']),
-    riskOfFire: random(['Comun', 'Alto', 'Nulo']),
-    specialFireDanger: random(['Si', 'No']),
-    fireProtectionLevel: random(['Bajo', 'Medio', 'Alto']),
-    roofFireResistance: random(['REI60', 'REI90', 'REI120']),
-    magneticShielding: random(['Si', 'No']),
-    powerLines: random(['Aereas', 'Enterradas', 'Mixtas']),
-    telecomLines: random(['Aereas', 'Enterradas', 'Mixtas']),
-  }
-}
-
 /**
  * Paso 2: Dimensiones
  * Basado en el diseño original de CD-Risk
  */
-export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepProps) {
-  const handleAutofill = () => {
-    if (onBulkChange) {
-      onBulkChange(generateMockDimensions())
-    }
-  }
+function DimensionsStepInner({ data, onChange, onBulkChange }: DimensionsStepProps) {
   // Calcular área de colección (simplificado)
   const calculateCollectionArea = () => {
     const length = parseFloat(data.length) || 0
@@ -68,15 +39,7 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
       {/* Columna izquierda: Dimensiones */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-primary">DIMENSIONES</CardTitle>
-            {isDev && (
-              <Button onClick={handleAutofill} variant="outline" size="sm" className="gap-2">
-                <Sparkles className="h-4 w-4" />
-                Autorellenar
-              </Button>
-            )}
-          </div>
+          <CardTitle className="text-primary">DIMENSIONES</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -89,9 +52,8 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
                 <div className="flex items-center gap-2">
                   <Input
                     id="length"
-                    type="number"
                     step="0.01"
-                    value={data.length || '80.00'}
+                    value={data.length || ''}
                     onChange={(e) => onChange('length', e.target.value)}
                     className="w-28"
                   />
@@ -107,9 +69,8 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
                 <div className="flex items-center gap-2">
                   <Input
                     id="width"
-                    type="number"
                     step="0.01"
-                    value={data.width || '50.00'}
+                    value={data.width || ''}
                     onChange={(e) => onChange('width', e.target.value)}
                     className="w-28"
                   />
@@ -125,9 +86,8 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
                 <div className="flex items-center gap-2">
                   <Input
                     id="height"
-                    type="number"
                     step="0.01"
-                    value={data.height || '20.00'}
+                    value={data.height || ''}
                     onChange={(e) => onChange('height', e.target.value)}
                     className="w-28"
                   />
@@ -143,9 +103,8 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
                 <div className="flex items-center gap-2">
                   <Input
                     id="protrusionHeight"
-                    type="number"
                     step="0.01"
-                    value={data.protrusionHeight || '20.00'}
+                    value={data.protrusionHeight || ''}
                     onChange={(e) => onChange('protrusionHeight', e.target.value)}
                     className="w-28"
                   />
@@ -202,53 +161,31 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Tipo de estructura */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="typeOfStructure" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label className="flex items-center">
               Tipo de estructura
               <InfoTooltip content="Material principal de construcción del edificio. Influye en el riesgo de incendio y en el tipo de protección necesaria." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.typeOfStructure || 'Hormigon'}
-                onValueChange={(value) => onChange('typeOfStructure', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STRUCTURE_TYPES.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardSelect
+              value={data.typeOfStructure || ''}
+              onValueChange={(value) => onChange('typeOfStructure', value)}
+              options={STRUCTURE_TYPES}
+              columns={3}
+            />
           </div>
 
           {/* Riesgo de incendio */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="riskOfFire" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label className="flex items-center">
               Riesgo de incendio
               <InfoTooltip content="Nivel de riesgo de incendio según el contenido y actividad del edificio. Afecta al cálculo de pérdidas potenciales." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.riskOfFire || 'Comun'}
-                onValueChange={(value) => onChange('riskOfFire', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {FIRE_RISK_LEVELS.map((level) => (
-                    <SelectItem key={level.value} value={level.value}>
-                      {level.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardSelect
+              value={data.riskOfFire || ''}
+              onValueChange={(value) => onChange('riskOfFire', value)}
+              options={FIRE_RISK_LEVELS}
+              columns={3}
+            />
           </div>
 
           <Separator className="my-6" />
@@ -257,82 +194,55 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
           <h3 className="text-lg font-semibold text-primary mb-4">INFLUENCIAS AMBIENTALES</h3>
 
           {/* Situación */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="situation" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label className="flex items-center">
               Situación
               <InfoTooltip content="Ubicación del edificio respecto a otras estructuras. Afecta el nivel de exposición a descargas atmosféricas." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.situation || 'EstructuraAislada'}
-                onValueChange={(value) => onChange('situation', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SITUATION_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardSelect
+              value={data.situation || ''}
+              onValueChange={(value) => onChange('situation', value)}
+              options={SITUATION_OPTIONS}
+              columns={3}
+            />
           </div>
 
           {/* Factor ambiental */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="environmentalFactor" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label className="flex items-center">
               Factor ambiental
               <InfoTooltip content="Característica del entorno que influye en la frecuencia de impactos de rayos. Afecta al nivel de riesgo." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.environmentalFactor || 'Urbano'}
-                onValueChange={(value) => onChange('environmentalFactor', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENVIRONMENTAL_FACTOR_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardSelect
+              value={data.environmentalFactor || ''}
+              onValueChange={(value) => onChange('environmentalFactor', value)}
+              options={ENVIRONMENTAL_FACTOR_OPTIONS}
+              columns={3}
+            />
           </div>
 
-          {/* Días de tormenta */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="stormDays" className="col-span-2">
-              Días de tormenta
-            </Label>
-            <div className="col-span-3">
+          {/* Días de tormenta + Densidad anual en la misma fila */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="stormDays">
+                Días de tormenta
+              </Label>
               <Input
                 id="stormDays"
-                type="number"
-                value={data.stormDays || '10'}
+                value={data.stormDays || ''}
                 onChange={(e) => onChange('stormDays', e.target.value)}
                 readOnly
                 className="bg-muted"
               />
             </div>
-          </div>
 
-          {/* Densidad anual de impactos */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="annualImpactDensity" className="col-span-2">
-              Densidad anual impactos
-            </Label>
-            <div className="col-span-3">
+            <div className="space-y-2">
+              <Label htmlFor="annualImpactDensity">
+                Densidad anual impactos
+              </Label>
               <Input
                 id="annualImpactDensity"
-                type="number"
-                value={data.annualImpactDensity || '1.00'}
+                value={data.annualImpactDensity || ''}
                 onChange={(e) => onChange('annualImpactDensity', e.target.value)}
                 readOnly
                 className="bg-muted"
@@ -341,31 +251,22 @@ export function DimensionsStep({ data, onChange, onBulkChange }: DimensionsStepP
           </div>
 
           {/* Tipo de terreno */}
-          <div className="grid grid-cols-5 items-center gap-4">
-            <Label htmlFor="groundType" className="col-span-2 flex items-center">
+          <div className="space-y-2">
+            <Label className="flex items-center">
               Tipo de terreno
               <InfoTooltip content="Composición del suelo donde se encuentra el edificio. Influye en la resistencia de tierra y el sistema de puesta a tierra." />
             </Label>
-            <div className="col-span-3">
-              <Select
-                value={data.groundType || 'Arenoso'}
-                onValueChange={(value) => onChange('groundType', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GROUND_TYPE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <CardSelect
+              value={data.groundType || ''}
+              onValueChange={(value) => onChange('groundType', value)}
+              options={GROUND_TYPE_OPTIONS}
+              columns={3}
+            />
           </div>
         </CardContent>
       </Card>
     </div>
   )
 }
+
+export const DimensionsStep = memo(DimensionsStepInner)

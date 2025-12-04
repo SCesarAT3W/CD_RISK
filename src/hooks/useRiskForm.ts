@@ -102,6 +102,28 @@ export interface RiskFormData {
 
   // Protección Externa (Step 6)
   buildingName?: string
+  // Configuraciones individuales por cada pararrayos
+  externalProtectionZones?: Array<{
+    id: string // Mismo ID que en protectionZones para vincular
+    externalCabezal?: string
+    conductorType?: string
+    conductorMaterial?: string
+    fixingType?: string
+    useOtherBajantes?: string
+    useNaturalComponents?: string
+    metrosConductor?: string
+    tipoCubierta?: string
+    bajantesNumber?: string
+    totalLength?: string
+    distanceGroundLevel?: string
+    groundType?: string
+    groundMaterial?: string
+    generalGround?: string
+    generalGroundConductor?: string
+    antenasNumber?: string
+    antenasLength?: string
+  }>
+  // Campos legacy (para compatibilidad)
   externalCabezal?: string
   conductorType?: string
   conductorMaterial?: string
@@ -150,6 +172,9 @@ export interface RiskFormData {
   // Esquema de Protección - Imagen capturada
   schemeImage?: string // Base64 data URL
   schemeImageTimestamp?: number // Timestamp de captura
+
+  // Control de validación
+  skipValidation?: boolean // Si está activo, permite avanzar sin validar campos requeridos
 }
 
 const RISK_FORM_KEY = 'riskFormData'
@@ -204,29 +229,19 @@ const mockAPI = {
           logger.error('Data is completely corrupted, clearing localStorage')
           localStorage.removeItem(RISK_FORM_KEY)
 
-          // Devolver valores por defecto
+          // Devolver valores por defecto mínimos
           return {
             buildingsToProtect: 1,
-            newConstruction: true,
             calculationNormative: 'lightning',
-            length: '80.00',
-            width: '50.00',
-            height: '20.00',
-            protrusionHeight: '20.00',
           }
         }
       }
     }
 
-    // Valores por defecto si no hay datos almacenados
+    // Valores por defecto mínimos si no hay datos almacenados
     return {
       buildingsToProtect: 1,
-      newConstruction: true,
       calculationNormative: 'lightning',
-      length: '80.00',
-      width: '50.00',
-      height: '20.00',
-      protrusionHeight: '20.00',
     }
   },
 
@@ -289,22 +304,23 @@ export function useRiskForm() {
         updateFormMutation.mutate(pendingDataRef.current)
       }
     }, 350)
-  }, [updateFormMutation])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Mutation para limpiar el formulario
   const clearFormMutation = useMutation({
     mutationFn: mockAPI.clearFormData,
     onSuccess: () => {
-      // Resetear los datos del formulario al estado inicial
+      // Resetear los datos del formulario al estado inicial mínimo
       queryClient.setQueryData(['riskForm'], {
         buildingsToProtect: 1,
-        newConstruction: true,
         calculationNormative: 'lightning',
-        length: '80.00',
-        width: '50.00',
-        height: '20.00',
-        protrusionHeight: '20.00',
       })
+      toast.success('Formulario limpiado correctamente')
+    },
+    onError: (error: Error) => {
+      logger.error('Error limpiando formulario', error)
+      toast.error('Error al limpiar el formulario')
     },
   })
 
@@ -312,9 +328,11 @@ export function useRiskForm() {
   const updateField = useCallback(
     (field: string, value: unknown) => {
       const currentData = queryClient.getQueryData<RiskFormData>(['riskForm']) || {}
+      // Convertir strings vacíos a null
+      const normalizedValue = value === '' ? null : value
       const newData = {
         ...currentData,
-        [field]: value,
+        [field]: normalizedValue,
       }
       // Actualizar cache inmediatamente para un input fluido
       queryClient.setQueryData(['riskForm'], newData)
@@ -328,9 +346,14 @@ export function useRiskForm() {
   const updateFields = useCallback(
     (fields: Partial<RiskFormData>) => {
       const currentData = queryClient.getQueryData<RiskFormData>(['riskForm']) || {}
+      // Convertir strings vacíos a null en todos los campos
+      const normalizedFields = Object.entries(fields).reduce((acc, [key, value]) => {
+        acc[key as keyof RiskFormData] = value === '' ? null : value
+        return acc
+      }, {} as Partial<RiskFormData>)
       const newData = {
         ...currentData,
-        ...fields,
+        ...normalizedFields,
       }
       queryClient.setQueryData(['riskForm'], newData)
       scheduleSave(newData as RiskFormData)
@@ -350,7 +373,8 @@ export function useRiskForm() {
   // Función para limpiar el formulario (memoizada)
   const clearForm = useCallback(() => {
     clearFormMutation.mutate()
-  }, [clearFormMutation])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Función para validar un paso del formulario (memoizada)
   const validateFormStep = useCallback(

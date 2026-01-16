@@ -86,18 +86,11 @@ export function useCanvasDrawing({ buildingLength, buildingWidth }: UseCanvasDra
 
   // Editar distancia manualmente
   const handleEditDistance = (areaId: string, sideIndex: number, currentValue: number) => {
-    const newValue = prompt(`Editar medida del lado ${sideIndex + 1}:`, currentValue.toString())
-    if (newValue !== null && newValue.trim() !== '') {
-      const parsedValue = parseFloat(newValue)
-      if (!isNaN(parsedValue) && parsedValue > 0) {
-        const key = `${areaId}-${sideIndex}`
-        setCustomDistances({
-          ...customDistances,
-          [key]: parsedValue,
-        })
-      } else {
-        toast.error('Por favor, ingresa un valor numérico válido mayor que 0')
-      }
+    const key = `${areaId}-${sideIndex}`
+    if (customDistances[key]) {
+      toast.info('La medida ya tiene un valor personalizado. Edítalo desde el panel.')
+    } else {
+      toast.info('Para editar la medida, usa el panel de edición.')
     }
   }
 

@@ -2,7 +2,8 @@ import { memo, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Calculator } from 'lucide-react'
+import { Calculator, Square } from 'lucide-react'
+import { toast } from 'sonner'
 import type { ResultsStepProps } from '@/types/stepProps'
 import { determineProtectionLevel } from '@/lib/calculations/riskCalculations'
 
@@ -12,6 +13,27 @@ interface RiskResult {
   initialRisk: string
   proposedRisk: string
   isInitialDanger: boolean
+}
+
+interface SolutionCardProps {
+  title: string
+  value: string
+}
+
+function SolutionCard({ title, value }: SolutionCardProps) {
+  return (
+    <Card className="p-4 w-80 bg-[var(--brand-navy)] text-[var(--brand-navy-foreground)]">
+      <div className="flex justify-between items-center">
+        <p className="font-bold text-sm">{title}</p>
+        <div className="flex items-center justify-center w-5 h-5 rounded-[5px] p-0.5 bg-[var(--brand-navy-foreground)]/10">
+          <Square className="h-[15px] w-[15px]" />
+        </div>
+      </div>
+      <div className="mt-2">
+        <h4 className="text-2xl font-bold">{value}</h4>
+      </div>
+    </Card>
+  )
 }
 
 /**
@@ -60,12 +82,12 @@ function ResultsStepInner({ data, onChange }: ResultsStepProps) {
   const handleCalculateSolution = () => {
     // Verificar que hay datos suficientes antes de calcular
     if (!data.calculationNormative) {
-      alert('Por favor selecciona una normativa en el Paso 1')
+      toast.error('Por favor selecciona una normativa en el Paso 1')
       return
     }
 
     if (!data.height && !data.typeOfStructure) {
-      alert('Por favor completa la altura o tipo de estructura en el Paso 2')
+      toast.error('Por favor completa la altura o tipo de estructura en el Paso 2')
       return
     }
 
@@ -112,15 +134,13 @@ function ResultsStepInner({ data, onChange }: ResultsStepProps) {
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-primary">Resultados del Cálculo</h2>
-
+    <div className="space-y-8">
       <Card>
         <CardHeader>
-          <CardTitle className="text-primary">RIESGOS CALCULADOS</CardTitle>
+          <CardTitle className="text-primary">Riesgos Calculados</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <Table className="border-separate border-spacing-y-[10px]">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-1/3"></TableHead>
@@ -132,32 +152,30 @@ function ResultsStepInner({ data, onChange }: ResultsStepProps) {
             <TableBody>
               {risks.map((risk, index) => (
                 <TableRow key={index}>
-                  <TableCell className="font-bold">{risk.type}</TableCell>
-                  <TableCell className="text-center">{risk.tolerableRisk}</TableCell>
-                  <TableCell
-                    className={`text-center font-bold ${
-                      risk.isInitialDanger
-                        ? 'bg-destructive text-destructive-foreground'
-                        : 'bg-green-600 text-white'
-                    }`}
-                  >
-                    R{index + 1} = {risk.initialRisk}
+                  <TableCell className="font-bold px-[13px] py-[6px] border-y border-l border-[var(--border-subtle)] rounded-l-[5px]">{risk.type}</TableCell>
+                  <TableCell className="text-center px-[13px] py-[6px] border-y border-[var(--border-subtle)]">{risk.tolerableRisk}</TableCell>
+                  <TableCell className="px-[13px] py-[6px] border-y border-[var(--border-subtle)] text-center">
+                    <span
+                      className={`inline-block w-[180px] text-center font-bold px-[13px] py-[6px] rounded-[5px] border-[0.5px] ${
+                        risk.isInitialDanger
+                          ? 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger)]'
+                          : 'bg-[var(--status-ok-bg)] text-[var(--status-ok)] border-[var(--status-ok)]'
+                      }`}
+                    >
+                      R{index + 1} = {risk.initialRisk}
+                    </span>
                   </TableCell>
-                  <TableCell
-                    className={`text-center font-bold ${
-                      solutionCalculated && risk.proposedRisk !== 'N/A'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    {risk.proposedRisk}
+                  <TableCell className="px-[13px] py-[6px] border-y border-r border-[var(--border-subtle)] rounded-r-[5px] text-center">
+                    <span className="inline-block w-[180px] text-center font-bold px-[13px] py-[6px] rounded-[5px] border-[0.5px] bg-muted text-[var(--brand-navy)] border-[var(--brand-navy)]">
+                      {risk.proposedRisk} 
+                    </span>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex justify-end">
             <Button
               size="lg"
               onClick={handleCalculateSolution}
@@ -170,42 +188,19 @@ function ResultsStepInner({ data, onChange }: ResultsStepProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-primary">SOLUCIÓN</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Nivel de protección adecuado */}
-            <div className="space-y-2">
-              <p className="text-center font-bold">Nivel de protección adecuado</p>
-              <Card
-                className={`p-4 text-center ${
-                  solutionCalculated
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                <h4 className="text-2xl font-bold">{protectionLevel}</h4>
-              </Card>
+      {solutionCalculated && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-primary">Solución</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-6">
+              <SolutionCard title="Nivel de protección adecuado" value={protectionLevel} />
+              <SolutionCard title="Tipo de protección interna" value={internalProtection} />
             </div>
-
-            {/* Tipo de protección interna */}
-            <div className="space-y-2">
-              <p className="text-center font-bold">Tipo de protección interna</p>
-              <Card
-                className={`p-4 text-center ${
-                  solutionCalculated
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                }`}
-              >
-                <h4 className="text-2xl font-bold">{internalProtection}</h4>
-              </Card>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

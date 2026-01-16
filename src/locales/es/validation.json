@@ -1,0 +1,22 @@
+{
+  "errors": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "El correo electrónico no es válido",
+    "invalidNumber": "Debe ser un número válido",
+    "minValue": "El valor mínimo es {{min}}",
+    "maxValue": "El valor máximo es {{max}}",
+    "minLength": "La longitud mínima es {{min}} caracteres",
+    "maxLength": "La longitud máxima es {{max}} caracteres",
+    "invalidFormat": "Formato no válido",
+    "mustBePositive": "El valor debe ser positivo",
+    "mustBeGreaterThanZero": "El valor debe ser mayor que 0",
+    "invalidSelection": "Selección no válida",
+    "pleaseSelectOption": "Por favor, selecciona una opción",
+    "invalidValue": "Por favor, ingresa un valor numérico válido mayor que 0"
+  },
+  "warnings": {
+    "unsavedChanges": "Tienes cambios sin guardar. ¿Deseas continuar?",
+    "incompleteData": "Algunos campos están incompletos",
+    "checkData": "Por favor, revisa los datos ingresados"
+  }
+}

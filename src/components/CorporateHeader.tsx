@@ -20,7 +20,7 @@ function CorporateHeaderComponent() {
   }
 
   return (
-    <header className="bg-primary py-3 text-primary-foreground">
+    <header className="group bg-primary py-3 text-primary-foreground transition-all hover:py-4">
       <div className="container mx-auto flex items-center justify-between px-4">
         {/* Logo */}
         <div className="logo">
@@ -33,37 +33,37 @@ function CorporateHeaderComponent() {
           </Link>
         </div>
 
-        {/* Navegación superior */}
+        {/* Navegación superior - se muestra al hacer hover */}
         <nav className="top-nav">
           <ul className="mb-0 flex list-none items-center gap-6 text-sm font-normal">
-            <li>
+            <li className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <Link
                 to="/"
-                className="text-primary-foreground transition-colors hover:text-accent"
+                className="text-muted-foreground transition-colors hover:text-primary-foreground"
               >
                 WEB
               </Link>
             </li>
-            <li>
+            <li className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <Link
                 to="/portal"
-                className="text-primary-foreground transition-colors hover:text-accent"
+                className="text-muted-foreground transition-colors hover:text-primary-foreground"
               >
                 PORTAL
               </Link>
             </li>
-            <li>
+            <li className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <Link
                 to="/languages"
-                className="text-primary-foreground transition-colors hover:text-accent"
+                className="text-muted-foreground transition-colors hover:text-primary-foreground"
               >
                 IDIOMAS
               </Link>
             </li>
-            <li>
+            <li className="opacity-0 transition-opacity duration-300 group-hover:opacity-100">
               <Link
                 to="/contact"
-                className="text-primary-foreground transition-colors hover:text-accent"
+                className="text-muted-foreground transition-colors hover:text-primary-foreground"
               >
                 CONTACTO
               </Link>

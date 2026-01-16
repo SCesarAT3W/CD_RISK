@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "Cálculo de Riesgo de Rayos",
+    "subtitle": "Sistema de Cálculo de Protección contra Rayos"
+  },
+  "buttons": {
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "reset": "Resetear",
+    "clear": "Limpiar",
+    "clearAll": "Limpiar todo",
+    "upload": "Subir",
+    "download": "Descargar",
+    "back": "Volver",
+    "finish": "Finalizar",
+    "calculate": "Calcular",
+    "optimize": "Optimizar"
+  },
+  "labels": {
+    "name": "Nombre",
+    "description": "Descripción",
+    "type": "Tipo",
+    "value": "Valor",
+    "level": "Nivel",
+    "model": "Modelo",
+    "height": "Altura",
+    "width": "Anchura",
+    "length": "Longitud",
+    "actions": "Acciones",
+    "total": "Total",
+    "status": "Estado"
+  },
+  "messages": {
+    "success": "Operación exitosa",
+    "error": "Ha ocurrido un error",
+    "warning": "Advertencia",
+    "info": "Información",
+    "loading": "Cargando...",
+    "noData": "No hay datos disponibles",
+    "confirmDelete": "¿Estás seguro de que quieres eliminar este elemento?",
+    "unsavedChanges": "Tienes cambios sin guardar"
+  },
+  "units": {
+    "meters": "m",
+    "centimeters": "cm",
+    "millimeters": "mm",
+    "degrees": "°"
+  }
+}

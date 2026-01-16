@@ -42,8 +42,10 @@ const CardSelectInner = React.forwardRef<HTMLDivElement, CardSelectProps>(
       () =>
         cn(
           layout === 'grid'
-            ? `grid gap-3 ${columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : 'grid-cols-4'}`
-            : 'flex flex-col gap-3',
+            ? `grid gap-3 items-stretch auto-rows-fr ${
+              columns === 2 ? 'grid-cols-2' : columns === 3 ? 'grid-cols-3' : 'grid-cols-4'
+            }`
+            : 'flex flex-col items-stretch gap-3',
           className
         ),
       [layout, columns, className]
@@ -61,7 +63,7 @@ const CardSelectInner = React.forwardRef<HTMLDivElement, CardSelectProps>(
           const optionId = `${instanceId.current}-${option.value}`
 
           return (
-            <div key={option.value} className="relative">
+            <div key={option.value} className="relative h-full">
               <RadioGroupItem
                 value={option.value}
                 id={optionId}
@@ -70,7 +72,7 @@ const CardSelectInner = React.forwardRef<HTMLDivElement, CardSelectProps>(
               <Label
                 htmlFor={optionId}
                 className={cn(
-                  'flex cursor-pointer items-center justify-center rounded-md border-2 px-4 py-3 text-center text-sm font-medium transition-all',
+                  'flex h-full min-h-[44px] cursor-pointer items-center justify-center rounded-md border-2 px-4 py-3 text-center text-sm font-medium transition-all',
                   'hover:bg-accent hover:text-accent-foreground',
                   'peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-focus-visible:ring-offset-2',
                   isSelected

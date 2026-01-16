@@ -24,7 +24,7 @@ export function InfoTooltip({ content }: InfoTooltipProps) {
             className="inline-flex items-center justify-center align-super text-xs text-accent hover:text-accent/80 transition-colors cursor-help ml-1"
             aria-label="Más información"
           >
-            <Info className="h-3 w-3" />
+            <Info className="h-3 w-3 -m-1" />
           </button>
         </TooltipTrigger>
         <TooltipContent className="max-w-xs">

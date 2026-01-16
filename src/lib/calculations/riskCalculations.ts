@@ -385,7 +385,7 @@ export function calculateWithProposedProtection(
     lpsLevel?: 'I' | 'II' | 'III' | 'IV'
     spdType?: 'SPD-I' | 'SPD-II' | 'SPD-III' | 'Coordinado'
     hasFireProtection?: boolean
-    fireProtectionType?: string
+    fireProtectionType?: 'SinProteccion' | 'Detectores' | 'ExtintoresAutomaticos' | 'Hidrantes' | 'SistemaCompleto'
   }
 ): RiskCalculationResult {
   // Crear copia del input con protección propuesta
@@ -398,7 +398,7 @@ export function calculateWithProposedProtection(
       hasSPD: proposedProtection.spdType !== undefined,
       spdType: proposedProtection.spdType,
       hasFireProtection: proposedProtection.hasFireProtection ?? input.protection.hasFireProtection,
-      fireProtectionType: proposedProtection.fireProtectionType as any,
+      fireProtectionType: proposedProtection.fireProtectionType,
     },
   }
 
@@ -465,7 +465,7 @@ export function compareProtectionScenarios(
 export function determineProtectionLevel(
   normative: 'lightning' | 'cte',
   R1: number,
-  structureType?: string,
+  _structureType?: string,
   structureHeight?: number
 ): 'I' | 'II' | 'III' | 'IV' | '1' | '2' | '3' | '4' | 'none' {
   if (normative === 'cte') {

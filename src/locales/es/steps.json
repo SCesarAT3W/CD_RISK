@@ -1,0 +1,117 @@
+{
+  "navigation": {
+    "step1": "Datos del Proyecto",
+    "step2": "Dimensiones",
+    "step3": "Protección Externa",
+    "step4": "Protección Interna",
+    "step5": "Esquema de Protección",
+    "step6": "Pérdidas",
+    "step7": "Solicitud de Cotización"
+  },
+  "projectData": {
+    "title": "Datos del Proyecto",
+    "projectName": "Nombre del proyecto",
+    "client": "Cliente",
+    "location": "Ubicación",
+    "date": "Fecha",
+    "description": "Descripción"
+  },
+  "dimensions": {
+    "title": "Dimensiones del Edificio",
+    "buildingHeight": "Altura del edificio",
+    "buildingLength": "Longitud del edificio",
+    "buildingWidth": "Anchura del edificio",
+    "selectHeight": "Selecciona la altura",
+    "enterLength": "Ingresa la longitud",
+    "enterWidth": "Ingresa la anchura"
+  },
+  "externalProtection": {
+    "title": "Protección Externa",
+    "headType": "Tipo de cabezal",
+    "headModel": "Modelo de cabezal",
+    "mastType": "Tipo de mástil",
+    "mastHeight": "Altura del mástil",
+    "anchorType": "Tipo de anclaje",
+    "anchorSeparation": "Separación entre anclajes",
+    "fixingType": "Tipo de fijaciones para el conductor",
+    "selectMastType": "Selecciona tipo de mástil",
+    "selectHeight": "Selecciona altura",
+    "selectAnchor": "Selecciona tipo de anclaje",
+    "selectSeparation": "Selecciona separación"
+  },
+  "internalProtection": {
+    "title": "Protección Interna",
+    "conductorMaterial": "Material del conductor",
+    "conductorNature": "Naturaleza del conductor",
+    "conductorSection": "Sección del conductor"
+  },
+  "protectionScheme": {
+    "title": "Esquema de Protección",
+    "buildingInfo": "Información del edificio",
+    "buildingName": "Nombre del edificio",
+    "buildingHeight": "Altura del edificio",
+    "noHeight": "No especificada",
+    "enterBuildingName": "Ingresa el nombre del edificio",
+    "configuration": "Configuración",
+    "lightningRodConfig": "CONFIGURACIÓN PARARRAYO",
+    "configuredLightningRods": "PARARRAYOS CONFIGURADOS",
+    "addLightningRod": "Añadir Pararrayos",
+    "noLightningRods": "No hay pararrayos configurados",
+    "clickToEdit": "Haz clic en una fila para editarla",
+    "schemeTitle": "ESQUEMA DE PROTECCIÓN",
+    "selectMode": "Selecciona cómo quieres comenzar:",
+    "uploadMap": "Subir tu mapa",
+    "drawOnGrid": "Dibujar sobre cuadrícula",
+    "toolbar": {
+      "plan": "Plano",
+      "uploadPlan": "Subir plano",
+      "building": "Edificio",
+      "autoGenerate": "Auto-generar área",
+      "drawManually": "Dibujar área manualmente",
+      "deleteLastArea": "Eliminar última área",
+      "lightningRods": "Pararrayos",
+      "addLightningRod": "Añadir pararrayos",
+      "optimizeCoverage": "Optimizar cobertura automáticamente",
+      "deleteSelected": "Eliminar pararrayos seleccionado",
+      "clearAll": "Limpiar todo"
+    },
+    "drawing": {
+      "drawingArea": "Dibujando área",
+      "points": "puntos",
+      "finishArea": "Finalizar área (Enter)",
+      "clickToClose": "Clic aquí para cerrar"
+    },
+    "canvas": {
+      "resetView": "Resetear vista",
+      "zoomInfo": "Usa la rueda del mouse para hacer zoom o arrastra el canvas para moverte"
+    },
+    "dialogs": {
+      "editMeasurement": "Editar medida del lado",
+      "editMeasurementDesc": "Ingresa la nueva medida en metros para este lado del edificio.",
+      "measurementLabel": "Medida (metros)",
+      "replaceArea": "Reemplazar área existente",
+      "replaceAreaDesc": "¿Deseas reemplazar el área existente con un rectángulo basado en las dimensiones del edificio?",
+      "clearScheme": "Limpiar todo el esquema",
+      "clearSchemeDesc": "¿Estás seguro de que quieres limpiar todo el esquema? Esta acción no se puede deshacer.",
+      "schemeCleared": "Esquema limpiado correctamente"
+    },
+    "optimization": {
+      "drawAreaFirst": "Primero debes dibujar el área del edificio antes de añadir pararrayos.",
+      "goodCoverage": "La cobertura actual es del {{coverage}}%. El edificio está bien protegido.",
+      "optimizationComplete": "Optimización completa",
+      "rodsAdded": "Pararrayos añadidos: {{count}}",
+      "previousCoverage": "Cobertura anterior: {{coverage}}%",
+      "currentCoverage": "Cobertura actual: {{coverage}}%",
+      "totalRods": "Total de pararrayos: {{total}}"
+    },
+    "skipValidation": "Omitir validación en este paso"
+  },
+  "losses": {
+    "title": "Pérdidas",
+    "description": "Configuración de pérdidas potenciales"
+  },
+  "quoteRequest": {
+    "title": "Solicitud de Cotización",
+    "description": "Generar solicitud de cotización para el proyecto"
+  }
+}

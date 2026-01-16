@@ -225,9 +225,6 @@ describe('useCanvasDrawing', () => {
     it('should generate rectangular area based on building dimensions', () => {
       const { result } = renderHook(() => useCanvasDrawing(defaultProps))
 
-      // Mock window.confirm to auto-accept
-      window.confirm = () => true
-
       act(() => {
         result.current.handleAutoGenerateArea(800, 500)
       })
@@ -239,8 +236,6 @@ describe('useCanvasDrawing', () => {
 
     it('should center the rectangle on stage', () => {
       const { result } = renderHook(() => useCanvasDrawing(defaultProps))
-
-      window.confirm = () => true
 
       const stageWidth = 800
       const stageHeight = 500
@@ -262,38 +257,8 @@ describe('useCanvasDrawing', () => {
   })
 
   describe('Custom Distances', () => {
-    it('should store custom distance for a side', () => {
+    it('should not set custom distance without panel input', () => {
       const { result } = renderHook(() => useCanvasDrawing(defaultProps))
-
-      // Mock window.prompt
-      window.prompt = () => '50'
-
-      act(() => {
-        result.current.handleEditDistance('area-1', 0, 30)
-      })
-
-      expect(result.current.customDistances['area-1-0']).toBe(50)
-    })
-
-    it('should reject invalid distance values', () => {
-      const { result } = renderHook(() => useCanvasDrawing(defaultProps))
-
-      // Mock window methods
-      window.prompt = () => 'invalid'
-      window.alert = () => {} // Suppress alert
-
-      act(() => {
-        result.current.handleEditDistance('area-1', 0, 30)
-      })
-
-      expect(result.current.customDistances['area-1-0']).toBeUndefined()
-    })
-
-    it('should reject negative distance values', () => {
-      const { result } = renderHook(() => useCanvasDrawing(defaultProps))
-
-      window.prompt = () => '-10'
-      window.alert = () => {}
 
       act(() => {
         result.current.handleEditDistance('area-1', 0, 30)

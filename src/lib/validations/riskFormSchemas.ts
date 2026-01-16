@@ -5,6 +5,23 @@ import { z } from 'zod'
  * Cada paso tiene su propio schema para validación granular
  */
 
+/**
+ * Schema para números opcionales que convierte strings a números automáticamente
+ * Esto soluciona el problema de datos antiguos guardados como strings en localStorage
+ */
+const coercedNumber = z.preprocess(
+  (val) => {
+    if (val === undefined || val === null || val === '') return undefined
+    if (typeof val === 'number') return val
+    if (typeof val === 'string') {
+      const parsed = Number(val)
+      return isNaN(parsed) ? undefined : parsed
+    }
+    return undefined
+  },
+  z.number().optional()
+)
+
 // ============================================
 // PASO 1: DATOS DEL PROYECTO
 // ============================================
@@ -198,12 +215,13 @@ export const protectionSchemeSchema = z.object({
     )
     .optional(),
 
-  mastType: z.enum(['Mastil', 'TCelosia', 'MAutonomo', 'TAutosoportada']).optional(),
+  mastType: z.enum(['Mastil', 'TCelosia']).optional(),
   mastHeight: z.enum(['3m', '6m', '8m']).optional(),
   anchorType: z.enum(['AEnU', 'ABAngulo', 'ALigero', 'EATPlano', 'AAjustable']).optional(),
   anchorSeparation: z.enum(['15cm', '30cm', '60cm']).optional(),
 
   protectionZones: z.array(protectionZoneSchema).optional(),
+  skipValidation: z.boolean().optional(),
 })
 
 export type ProtectionSchemeForm = z.infer<typeof protectionSchemeSchema>
@@ -212,41 +230,33 @@ export type ProtectionZone = z.infer<typeof protectionZoneSchema>
 // ============================================
 // PASO 6: PROTECCIÓN EXTERNA
 // ============================================
-export const externalProtectionSchema = z.object({
+export const externalProtectionZoneSchema = z.object({
+  id: z.string(),
   externalCabezal: z.string().optional(),
   conductorType: z.string().optional(),
   conductorMaterial: z.string().optional(),
   fixingType: z.string().optional(),
   useOtherBajantes: z.string().optional(),
   useNaturalComponents: z.string().optional(),
-
-  bajantesNumber: z
-    .string()
-    .refine((val) => val === '' || !isNaN(parseInt(val)), 'Debe ser un número entero')
-    .optional(),
-
-  totalLength: z
-    .string()
-    .refine((val) => val === '' || !isNaN(parseFloat(val)), 'Debe ser un número válido')
-    .optional(),
-
-  distanceGroundLevel: z.string().optional(),
+  metrosConductor: coercedNumber,
+  tipoCubierta: z.string().optional(),
+  bajantesNumber: coercedNumber,
+  totalLength: coercedNumber,
+  distanceGroundLevel: coercedNumber,
   groundType: z.string().optional(),
   groundMaterial: z.string().optional(),
   generalGround: z.string().optional(),
-  generalGroundConductor: z.string().optional(),
-
-  antenasNumber: z
-    .string()
-    .refine((val) => val === '' || !isNaN(parseInt(val)), 'Debe ser un número entero')
-    .optional(),
-
-  antenasLength: z
-    .string()
-    .refine((val) => val === '' || !isNaN(parseFloat(val)), 'Debe ser un número válido')
-    .optional(),
+  generalGroundConductor: coercedNumber,
+  antenasNumber: coercedNumber,
+  antenasLength: coercedNumber,
+  extraMargin: coercedNumber,
 })
 
+export const externalProtectionSchema = z.object({
+  externalProtectionZones: z.array(externalProtectionZoneSchema).optional(),
+})
+
+export type ExternalProtectionZone = z.infer<typeof externalProtectionZoneSchema>
 export type ExternalProtectionForm = z.infer<typeof externalProtectionSchema>
 
 // ============================================
@@ -255,34 +265,26 @@ export type ExternalProtectionForm = z.infer<typeof externalProtectionSchema>
 export const internalProtectionSchema = z.object({
   diffGeneral30mA: z.string().optional(),
   intensity: z.string().optional(),
-  principalPanel400v: z.string().optional(),
-  principalPanel230v: z.string().optional(),
-  principalPanel230vM: z.string().optional(),
-  principalPanel120vM: z.string().optional(),
+  principalPanel400v: coercedNumber,
+  principalPanel230v: coercedNumber,
+  principalPanel230vM: coercedNumber,
+  principalPanel120vM: coercedNumber,
   principalPanel400vNeutro: z.string().optional(),
   principalPanel230vNeutro: z.string().optional(),
-  secondaryPanel400v: z.string().optional(),
-  secondaryPanel230v: z.string().optional(),
-  secondaryPanel230vM: z.string().optional(),
-  secondaryPanel120vM: z.string().optional(),
+  secondaryPanel400v: coercedNumber,
+  secondaryPanel230v: coercedNumber,
+  secondaryPanel230vM: coercedNumber,
+  secondaryPanel120vM: coercedNumber,
   secondaryPanel400vNeutro: z.string().optional(),
   secondaryPanel230vNeutro: z.string().optional(),
 
-  analogLinesNumber: z
-    .string()
-    .refine((val) => val === '' || !isNaN(parseInt(val)), 'Debe ser un número entero')
-    .optional(),
-
-  digitalLinesNumber: z
-    .string()
-    .refine((val) => val === '' || !isNaN(parseInt(val)), 'Debe ser un número entero')
-    .optional(),
-
-  ethernetLines: z.string().optional(),
-  busLines5v: z.string().optional(),
-  serialLines12v: z.string().optional(),
-  controlLines24v: z.string().optional(),
-  controlLines48v: z.string().optional(),
+  analogLinesNumber: coercedNumber,
+  digitalLinesNumber: coercedNumber,
+  ethernetLines: coercedNumber,
+  busLines5v: coercedNumber,
+  serialLines12v: coercedNumber,
+  controlLines24v: coercedNumber,
+  controlLines48v: coercedNumber,
 })
 
 export type InternalProtectionForm = z.infer<typeof internalProtectionSchema>
@@ -338,7 +340,7 @@ export type CompleteRiskForm = z.infer<typeof completeRiskFormSchema>
  */
 export function validateStep(stepId: string, data: Partial<CompleteRiskForm>): { success: boolean; errors?: z.ZodError } {
   // Si skipValidation está activo, permitir avanzar sin validar
-  if ((data as any).skipValidation === true) {
+  if (data.skipValidation === true) {
     return { success: true }
   }
 

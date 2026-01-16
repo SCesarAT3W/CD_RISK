@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { CorporateStepper, type Step } from '@/components/CorporateStepper'
+import { Stepper, type Step } from '@/components/Stepper'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,7 +8,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -27,7 +26,7 @@ import { ExternalProtectionStep } from './RiskSteps/ExternalProtectionStep'
 import { InternalProtectionStep } from './RiskSteps/InternalProtectionStep'
 import { QuoteRequestStep } from './RiskSteps/QuoteRequestStep'
 import { useRiskForm } from '@/hooks/useRiskForm'
-import { Loader2, Copy, Download, CheckCircle2 } from 'lucide-react'
+import { Loader2, Copy, Download, CheckCircle2, RefreshCw } from 'lucide-react'
 import { logger } from '@/lib/logger'
 
 /**
@@ -41,7 +40,7 @@ export function RiskCalculation() {
   const [copied, setCopied] = useState(false)
 
   // Usar TanStack Query para gestionar el estado del formulario
-  const { formData, isLoading, updateField, updateFields, isSaving, validateFormStep } = useRiskForm()
+  const { formData, isLoading, updateField, updateFields, isSaving, validateFormStep, clearForm } = useRiskForm()
 
   // Definir los pasos del wizard (basado en el diseño original)
   const steps: Step[] = [
@@ -65,13 +64,16 @@ export function RiskCalculation() {
   }, [currentStep])
 
   const handleNext = useCallback(() => {
-    // Solo validar pasos críticos (project_data y dimensions)
-    const currentStepId = steps[currentStep].id
-    const criticalSteps = ['project_data', 'dimensions']
+    // En modo desarrollo, no validar campos requeridos
+    if (!import.meta.env.DEV) {
+      // Solo validar pasos críticos (project_data y dimensions) en producción
+      const currentStepId = steps[currentStep].id
+      const criticalSteps = ['project_data', 'dimensions']
 
-    if (criticalSteps.includes(currentStepId)) {
-      if (!validateFormStep(currentStepId)) {
-        return // Detener si hay errores de validación
+      if (criticalSteps.includes(currentStepId)) {
+        if (!validateFormStep(currentStepId)) {
+          return // Detener si hay errores de validación
+        }
       }
     }
 
@@ -124,7 +126,7 @@ export function RiskCalculation() {
   // Mostrar loading mientras se cargan los datos
   if (isLoading) {
     return (
-      <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4 py-6">
+      <div className="flex items-center justify-center py-6">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Cargando formulario...</p>
@@ -178,62 +180,78 @@ export function RiskCalculation() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-4">
-      {/* Breadcrumbs */}
-      <Breadcrumb className="mb-2">
-        <BreadcrumbList className="rounded-md bg-muted p-3">
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/" className="text-primary">
-              Cálculo de Riesgo
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{currentStepData.title}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
+    <div className="flex flex-col gap-4 h-full min-h-0">
       {/* Stepper */}
-      <CorporateStepper
+      <Stepper
         steps={steps}
         currentStep={currentStep}
         onStepClick={handleStepClick}
-        className="mb-8"
       />
 
+      {/* Breadcrumbs y Botón de restaurar */}
+      <div className="flex items-center justify-between">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/" className="text-primary">
+                Cálculo de Riesgo
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{currentStepData.title}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+
+        {import.meta.env.DEV && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              clearForm()
+              setCurrentStep(0)
+            }}
+            className="gap-2 border-0 bg-card hover:bg-muted shadow-[0px_2px_4px_0px_var(--shadow-9)]"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span className="hidden sm:inline">Restaurar</span>
+          </Button>
+        )}
+      </div>
+
       {/* Contenido del paso actual */}
-      <Card className="shadow-sm">
-        <CardContent>
-          {renderStepContent()}
+      <section className="flex-1 min-h-0">
+        {renderStepContent()}
+      </section>
 
-          {/* Botones de navegación */}
-          <div className="mt-8 flex items-center justify-between border-t pt-6">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentStep === 0 || isSaving}
-              size="lg"
-            >
-              Anterior
-            </Button>
+      {/* Botones de navegación */}
+      <nav
+        className="flex items-center justify-between rounded-[10px] bg-card p-6 shadow-[0px_0px_4.5px_0px_var(--shadow-10)]"
+      >
+        <Button
+          variant="outline"
+          onClick={handlePrevious}
+          disabled={currentStep === 0 || isSaving}
+          size="lg"
+        >
+          Anterior
+        </Button>
 
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-              <span>Paso {currentStep + 1} de {steps.length}</span>
-            </div>
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+          <span>Paso {currentStep + 1} de {steps.length}</span>
+        </div>
 
-            <Button
-              onClick={currentStep === steps.length - 1 ? handleFinish : handleNext}
-              disabled={isSaving}
-              size="lg"
-            >
-              {currentStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
+        <Button
+          onClick={currentStep === steps.length - 1 ? handleFinish : handleNext}
+          disabled={isSaving}
+          size="lg"
+        >
+          {currentStep === steps.length - 1 ? 'Finalizar' : 'Siguiente'}
+        </Button>
+      </nav>
+ 
       {/* Modal con resultado JSON */}
       <Dialog open={showResultModal} onOpenChange={setShowResultModal}>
         <DialogContent className="max-h-[80vh] max-w-4xl overflow-hidden">

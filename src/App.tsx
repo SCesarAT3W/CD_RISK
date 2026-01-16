@@ -3,6 +3,7 @@ import { AuthProvider, ProtectedRoute } from '@/lib/auth/mockAuth'
 import { Login } from '@/pages/Login'
 import { RiskCalculation } from '@/pages/RiskCalculation'
 import { CorporateLayout } from '@/components/CorporateLayout'
+import { TranslatedOptionsProvider } from '@/contexts/TranslatedOptionsContext'
 
 /**
  * Aplicación de Cálculo de Riesgo CD-Risk
@@ -21,25 +22,27 @@ function App() {
       DEV_MODE={import.meta.env.DEV}
       onLogout={handleLogout}
     >
-      <Routes>
-        {/* Ruta pública - Login */}
-        <Route path="/login" element={<Login />} />
+      <TranslatedOptionsProvider>
+        <Routes>
+          {/* Ruta pública - Login */}
+          <Route path="/login" element={<Login />} />
 
-        {/* Ruta principal protegida - Cálculo de Riesgo */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute onNotAuthenticated={() => <Navigate to="/login" replace />}>
-              <CorporateLayout>
-                <RiskCalculation />
-              </CorporateLayout>
-            </ProtectedRoute>
-          }
-        />
+          {/* Ruta principal protegida - Cálculo de Riesgo */}
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute onNotAuthenticated={() => <Navigate to="/login" replace />}>
+                <CorporateLayout>
+                  <RiskCalculation />
+                </CorporateLayout>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Redirigir cualquier ruta desconocida al login */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+          {/* Redirigir cualquier ruta desconocida al login */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </TranslatedOptionsProvider>
     </AuthProvider>
   )
 }

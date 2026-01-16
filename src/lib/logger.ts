@@ -32,10 +32,9 @@ export const logger = {
   error: (message: string, error?: Error | unknown) => {
     if (isDev) {
       console.error(`[ERROR] ${message}`, error)
-    } else {
-      // TODO: Send to error tracking service (Sentry, LogRocket, etc.)
-      // Example: Sentry.captureException(error, { message })
     }
+    // In production, errors are silently ignored
+    // Configure an error tracking service if needed
   },
 
   /**

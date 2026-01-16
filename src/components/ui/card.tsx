@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Square } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -7,7 +8,7 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6",
+        "bg-card text-card-foreground flex flex-col gap-6 border-0 py-6 shadow-[0px_0px_4px_0px_var(--shadow-10)] rounded-[10px]",
         className
       )}
       {...props}
@@ -28,13 +29,25 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+interface CardTitleProps extends React.ComponentProps<"div"> {
+  icon?: React.ReactNode
+  hideIcon?: boolean
+}
+
+function CardTitle({ className, children, icon, hideIcon, ...props }: CardTitleProps) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
+      className={cn("flex items-center gap-2.5 leading-none font-semibold", className)}
       {...props}
-    />
+    >
+      {!hideIcon && (
+        <div className="flex items-center justify-center w-5 h-5 rounded-[5px] p-0.5 bg-[var(--brand-navy-10)]">
+          {icon || <Square className="h-[15px] w-[15px]" />}
+        </div>
+      )}
+      {children}
+    </div>
   )
 }
 

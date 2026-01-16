@@ -17,10 +17,10 @@ interface CorporateLayoutProps {
  */
 export function CorporateLayout({ children, className }: CorporateLayoutProps) {
   return (
-    <div className="flex min-h-screen flex-col bg-muted/40">
+    <div className="flex min-h-full flex-col bg-muted/40">
       <CorporateHeader />
 
-      <main className={`container mx-auto flex-1 px-4 ${className || ''}`}>
+      <main className={`mx-auto w-[90%] max-w-[90%] flex-1 py-4 min-h-0 flex flex-col ${className || ''}`}>
         {children}
       </main>
 

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -87,6 +88,26 @@
   --corporate-yellow: oklch(0.82 0.15 85); /* #f7a800 */
   --corporate-blue-dark: oklch(0.15 0.10 264); /* Azul más oscuro */
   --corporate-blue-light: oklch(0.35 0.12 264); /* Azul más claro */
+
+  /* Tokens de UI locales */
+  --brand-navy: #0B1B52;
+  --brand-navy-foreground: #ffffff;
+  --brand-navy-08: #0B1B520F;
+  --brand-navy-10: #0B1B5214;
+  --brand-navy-12: #0B1B521C;
+  --surface-muted: #F4F5F8;
+  --border-subtle: #F3F3F3;
+  --border-strong: #E4E4E4;
+  --grid-light: #E5E7EB;
+  --status-danger: #FF0000;
+  --status-danger-bg: #FFF0F0;
+  --status-ok: #80D41B;
+  --status-ok-bg: #80D41B26;
+  --shadow-5: rgba(0, 0, 0, 0.05);
+  --shadow-6: rgba(0, 0, 0, 0.06);
+  --shadow-9: rgba(0, 0, 0, 0.09);
+  --shadow-10: rgba(0, 0, 0, 0.10);
+  --shadow-15: rgba(0, 0, 0, 0.15);
 }
 
 .dark {
@@ -127,7 +148,54 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
+}
+
+/* Custom range input styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--grid-light);
+  border-radius: 4px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border: 0.5px solid var(--brand-navy);
+  border-radius: 50%;
+  margin-top: -6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--grid-light);
+  border-radius: 4px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border: 0.5px solid var(--brand-navy);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }

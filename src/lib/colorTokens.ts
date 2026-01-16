@@ -1,0 +1,17 @@
+export const COLOR_TOKENS = {
+  brandBlue: '#243469',
+  brandYellow: '#f7a800',
+  brandYellowAlpha: 'rgba(247, 168, 0, 0.25)',
+  selectionBlue: '#3b82f6',
+  gridLight: '#e5e7eb',
+  gridLighter: '#dddddd',
+  gridNormal: '#d0d0d0',
+  gridHeavy: '#b0b0b0',
+  boxStroke: '#3f4c6b',
+  boxFillAlpha: 'rgba(63, 76, 107, 0.25)',
+  success: '#22c55e',
+  successDark: '#16a34a',
+  dangerAlpha: 'rgba(239, 68, 68, 0.3)',
+  successAlpha: 'rgba(34, 197, 94, 0.2)',
+  white: '#ffffff',
+} as const

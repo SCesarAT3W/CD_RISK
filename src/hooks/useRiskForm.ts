@@ -52,6 +52,11 @@ export interface RiskFormData {
   magneticShielding?: string
   powerLines?: string
   telecomLines?: string
+  situation?: string
+  environmentalFactor?: string
+  stormDays?: string
+  annualImpactDensity?: string
+  groundType?: string
 
   // Pérdidas (Step 3)
   dueToFire?: string
@@ -111,59 +116,42 @@ export interface RiskFormData {
     fixingType?: string
     useOtherBajantes?: string
     useNaturalComponents?: string
-    metrosConductor?: string
+    metrosConductor?: number
     tipoCubierta?: string
-    bajantesNumber?: string
-    totalLength?: string
-    distanceGroundLevel?: string
+    bajantesNumber?: number
+    totalLength?: number
+    distanceGroundLevel?: number
     groundType?: string
     groundMaterial?: string
     generalGround?: string
-    generalGroundConductor?: string
-    antenasNumber?: string
-    antenasLength?: string
+    generalGroundConductor?: number
+    antenasNumber?: number
+    antenasLength?: number
+    extraMargin?: number
   }>
-  // Campos legacy (para compatibilidad)
-  externalCabezal?: string
-  conductorType?: string
-  conductorMaterial?: string
-  fixingType?: string
-  useOtherBajantes?: string
-  useNaturalComponents?: string
-  metrosConductor?: string
-  tipoCubierta?: string
-  bajantesNumber?: string
-  totalLength?: string
-  distanceGroundLevel?: string
-  groundType?: string
-  groundMaterial?: string
-  generalGround?: string
-  generalGroundConductor?: string
-  antenasNumber?: string
-  antenasLength?: string
 
   // Protección Interna (Step 7)
   diffGeneral30mA?: string
   intensity?: string
-  principalPanel400v?: string
-  principalPanel230v?: string
-  principalPanel230vM?: string
-  principalPanel120vM?: string
+  principalPanel400v?: number
+  principalPanel230v?: number
+  principalPanel230vM?: number
+  principalPanel120vM?: number
   principalPanel400vNeutro?: string
   principalPanel230vNeutro?: string
-  secondaryPanel400v?: string
-  secondaryPanel230v?: string
-  secondaryPanel230vM?: string
-  secondaryPanel120vM?: string
+  secondaryPanel400v?: number
+  secondaryPanel230v?: number
+  secondaryPanel230vM?: number
+  secondaryPanel120vM?: number
   secondaryPanel400vNeutro?: string
   secondaryPanel230vNeutro?: string
-  analogLinesNumber?: string
-  digitalLinesNumber?: string
-  ethernetLines?: string
-  busLines5v?: string
-  serialLines12v?: string
-  controlLines24v?: string
-  controlLines48v?: string
+  analogLinesNumber?: number
+  digitalLinesNumber?: number
+  ethernetLines?: number
+  busLines5v?: number
+  serialLines12v?: number
+  controlLines24v?: number
+  controlLines48v?: number
 
   // Solicitar Presupuesto (Step 8)
   captchaCheck?: boolean
@@ -192,14 +180,11 @@ const mockAPI = {
 
         // Migración: Manejar zonas de protección antiguas sin la propiedad placedOnMap
         if (parsed.protectionZones && Array.isArray(parsed.protectionZones)) {
-          parsed.protectionZones = parsed.protectionZones.map((zone: unknown) => {
-            const z = zone as Record<string, unknown>
-            return {
-              ...z,
-              // Marcar zonas antiguas sin placedOnMap como pendientes (no colocadas en el mapa)
-              placedOnMap: z.placedOnMap !== undefined ? z.placedOnMap : false
-            }
-          })
+          parsed.protectionZones = parsed.protectionZones.map((zone) => ({
+            ...zone,
+            // Marcar zonas antiguas sin placedOnMap como pendientes (no colocadas en el mapa)
+            placedOnMap: zone.placedOnMap !== undefined ? zone.placedOnMap : false
+          }))
         }
 
         // Intentar validar datos con Zod schema (parcial para permitir datos incompletos)
@@ -229,27 +214,24 @@ const mockAPI = {
           logger.error('Data is completely corrupted, clearing localStorage')
           localStorage.removeItem(RISK_FORM_KEY)
 
-          // Devolver valores por defecto mínimos
-          return {
-            buildingsToProtect: 1,
-            calculationNormative: 'lightning',
-          }
+          // Devolver objeto vacío sin valores por defecto
+          return {}
         }
       }
     }
 
-    // Valores por defecto mínimos si no hay datos almacenados
-    return {
-      buildingsToProtect: 1,
-      calculationNormative: 'lightning',
-    }
+    // Sin valores por defecto - formulario completamente vacío
+    return {}
   },
 
   // Guardar datos del formulario en localStorage
   saveFormData: async (data: RiskFormData): Promise<RiskFormData> => {
     // Simular delay de red
     await new Promise((resolve) => setTimeout(resolve, 100))
-    localStorage.setItem(RISK_FORM_KEY, JSON.stringify(data))
+    // Excluir schemeImage del localStorage para evitar exceder la cuota
+    // (las imágenes base64 pueden ser muy grandes)
+    const { schemeImage, ...dataWithoutImage } = data
+    localStorage.setItem(RISK_FORM_KEY, JSON.stringify(dataWithoutImage))
     return data
   },
 
@@ -311,11 +293,8 @@ export function useRiskForm() {
   const clearFormMutation = useMutation({
     mutationFn: mockAPI.clearFormData,
     onSuccess: () => {
-      // Resetear los datos del formulario al estado inicial mínimo
-      queryClient.setQueryData(['riskForm'], {
-        buildingsToProtect: 1,
-        calculationNormative: 'lightning',
-      })
+      // Resetear los datos del formulario a un objeto vacío sin valores por defecto
+      queryClient.setQueryData(['riskForm'], {})
       toast.success('Formulario limpiado correctamente')
     },
     onError: (error: Error) => {
@@ -346,11 +325,11 @@ export function useRiskForm() {
   const updateFields = useCallback(
     (fields: Partial<RiskFormData>) => {
       const currentData = queryClient.getQueryData<RiskFormData>(['riskForm']) || {}
-      // Convertir strings vacíos a null en todos los campos
+      // Convertir strings vacíos a undefined en todos los campos
       const normalizedFields = Object.entries(fields).reduce((acc, [key, value]) => {
-        acc[key as keyof RiskFormData] = value === '' ? null : value
+        acc[key as keyof RiskFormData] = value === '' ? undefined : value
         return acc
-      }, {} as Partial<RiskFormData>)
+      }, {} as Record<string, unknown>) as Partial<RiskFormData>
       const newData = {
         ...currentData,
         ...normalizedFields,

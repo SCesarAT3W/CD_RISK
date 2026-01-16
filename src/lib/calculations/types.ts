@@ -91,6 +91,7 @@ export interface RiskCalculationInput {
       situation: 'Aereas' | 'Enterradas' | 'EnTuberia'
       isShielded: boolean
       count: number // Número de líneas
+      length: number // Longitud de la línea (m)
     }
   }
 
@@ -237,6 +238,7 @@ export interface ProtectionScenario {
   spdType?: 'SPD-I' | 'SPD-II' | 'SPD-III' | 'Coordinado'
   hasFireProtection: boolean
   fireProtectionType?:
+    | 'SinProteccion'
     | 'Detectores'
     | 'ExtintoresAutomaticos'
     | 'Hidrantes'

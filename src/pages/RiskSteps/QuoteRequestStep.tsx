@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { FileText, Download, FileCheck, Eye, Image as ImageIcon } from 'lucide-react'
+import { Building2, Download, Eye, FileCheck, FileText, Image as ImageIcon, MapPin, Ruler } from 'lucide-react'
 
 import type { QuoteRequestStepProps } from '@/types/stepProps'
 import type { RiskFormData } from '@/hooks/useRiskForm'
@@ -19,15 +19,9 @@ interface Material {
   quantity: string
 }
 
-interface ProjectSummaryItem {
-  label: string
-  value: string | number | React.ReactNode
-  getValue?: (data: RiskFormData) => string | number | React.ReactNode
-}
-
 interface NormativeItem {
   label: string
-  value: string
+  value?: string
   getValue?: (data: RiskFormData) => string
 }
 
@@ -90,23 +84,6 @@ function MaterialsTable({ materials }: MaterialsTableProps) {
 }
 
 /**
- * Componente para items del resumen del proyecto
- */
-interface SummaryItemProps {
-  label: string
-  value: string | number | React.ReactNode
-}
-
-function SummaryItem({ label, value }: SummaryItemProps) {
-  return (
-    <li className="flex justify-between border-b pb-2">
-      <span>{label}:</span>
-      <span className="font-bold">{value}</span>
-    </li>
-  )
-}
-
-/**
  * Paso 8: Solicitar Presupuesto / Resumen y Documentación
  * Basado en el diseño original de CD-Risk
  */
@@ -115,61 +92,9 @@ export function QuoteRequestStep({ data, onChange }: QuoteRequestStepProps) {
   const [showInternalMaterials, setShowInternalMaterials] = useState(false)
   const [showSchemeModal, setShowSchemeModal] = useState(false)
 
-  // Datos del resumen del proyecto
-  const projectSummary: ProjectSummaryItem[] = [
-    {
-      label: 'Nombre del edificio',
-      getValue: (data) => data.projectName || 'EDIFICIO PRODUCCIÓN',
-    },
-    {
-      label: 'Dirección',
-      getValue: (data) => data.projectAddress || 'AVENIDA DE LA INDUSTRIA 32',
-    },
-    {
-      label: 'Tipo de Instalación',
-      value: 'Instalación sobre el edificio a proteger',
-    },
-    {
-      label: 'Altura del Edificio',
-      getValue: (data) => `${data.height || '20.00'} m`,
-    },
-    {
-      label: 'Cantidad de instalaciones',
-      getValue: (data) => data.buildingsToProtect || '1',
-    },
-    {
-      label: 'Nº de Bajantes',
-      getValue: (data) => data.bajantesNumber || '2',
-    },
-    {
-      label: 'Materiales Externos Estimados',
-      value: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowExternalMaterials(true)}
-          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-        >
-          <Eye className="mr-2 h-4 w-4" />
-          Ver listado detallado
-        </Button>
-      ),
-    },
-    {
-      label: 'Materiales Internos Estimados',
-      value: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowInternalMaterials(true)}
-          className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-        >
-          <Eye className="mr-2 h-4 w-4" />
-          Ver listado detallado
-        </Button>
-      ),
-    },
-  ]
+  const totalBajantes = data.externalProtectionZones?.reduce((sum, zone) => {
+    return sum + (zone.bajantesNumber || 0)
+  }, 0) || 0
 
   // Datos normativos
   const normativeData: NormativeItem[] = [
@@ -188,160 +113,187 @@ export function QuoteRequestStep({ data, onChange }: QuoteRequestStepProps) {
   ]
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-primary">Resumen y Documentación del Proyecto</h2>
+    <div className="flex flex-col gap-6">
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-primary flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Resumen del proyecto
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">Nombre del edificio:</span>
+              <span className="font-semibold text-foreground">{data.projectName || 'Edificio'}</span>
+            </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Columna izquierda: Resumen del proyecto */}
-        <div className="flex flex-col space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-primary">RESUMEN DEL PROYECTO</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Aquí mostrará un resumen de los datos principales y los resultados clave del proyecto.
-              </p>
-              <ul className="space-y-2">
-                {projectSummary.map((item, index) => (
-                  <SummaryItem
-                    key={index}
-                    label={item.label}
-                    value={item.getValue ? item.getValue(data) : item.value}
-                  />
-                ))}
-              </ul>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Estos datos son una estimación inicial. Para un cálculo preciso, genere el informe completo.
-              </p>
-            </CardContent>
-          </Card>
+            <div className="flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3 text-primary" />
+                {data.projectAddress || 'C/ Calle edificio nº8, 00000, España'}
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border bg-muted/40 px-3 py-1 text-xs text-muted-foreground">
+                <Ruler className="h-3 w-3 text-primary" />
+                {data.height ? `${data.height} m` : 'Altura --'}
+              </span>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-primary">Datos de Contacto</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="confirmedName">Nombre</Label>
-                <Input
-                  id="confirmedName"
-                  value={data.clientName || '[Nombre del Usuario]'}
-                  readOnly
-                  className="bg-muted"
-                />
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-[11px] text-muted-foreground">Instalaciones:</p>
+                <p className="text-sm font-semibold text-foreground">{data.buildingsToProtect || '1'}</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmedEmail">Correo Electrónico</Label>
-                <Input
-                  id="confirmedEmail"
-                  value={data.clientEmail || '[correo.usuario@ejemplo.com]'}
-                  readOnly
-                  className="bg-muted"
-                />
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-[11px] text-muted-foreground">Nº de bajantes:</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {totalBajantes > 0 ? totalBajantes : (data.externalProtectionZones?.length || 0)}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-[11px] text-muted-foreground">Tipo de instalación:</p>
+                <p className="text-sm font-semibold text-foreground">Instalación xxx</p>
+              </div>
+            </div>
 
-        {/* Columna derecha: Datos normativos y descargas */}
-        <div className="flex flex-col space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-primary">DATOS NORMATIVOS</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="mb-4 text-sm text-muted-foreground">
-                Principales normativas y estándares aplicados:
-              </p>
-              <ul className="space-y-2">
-                {normativeData.map((item, index) => (
-                  <SummaryItem
-                    key={index}
-                    label={item.label}
-                    value={item.getValue ? item.getValue(data) : item.value}
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowExternalMaterials(true)}
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Ver materiales externos
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowInternalMaterials(true)}
+                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                Ver materiales internos
+              </Button>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Estos datos son una estimación inicial. Para un cálculo preciso, genere el informe completo.
+            </p>
+
+            <div className="border-t pt-4 space-y-8">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                <Building2 className="h-4 w-4" />
+                Reenviar a...
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="confirmedName">Nombre</Label>
+                  <Input
+                    id="confirmedName"
+                    value={data.clientName || ''}
+                    onChange={(e) => onChange('clientName', e.target.value)}
+                    placeholder="Nombre"
                   />
-                ))}
-              </ul>
-              <p className="mt-4 text-sm text-muted-foreground">
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmedEmail">Email</Label>
+                  <Input
+                    id="confirmedEmail"
+                    value={data.clientEmail || ''}
+                    onChange={(e) => onChange('clientEmail', e.target.value)}
+                    placeholder="correo@ejemplo.com"
+                  />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-primary">Datos normativos</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-8">
+            <div className="space-y-8 text-sm">
+              {normativeData.map((item, index) => (
+                <div key={index} className="flex items-center justify-between border-b pb-2 last:border-b-0">
+                  <span className="text-muted-foreground">{item.label}</span>
+                  <span className="font-semibold text-foreground">
+                    {item.getValue ? item.getValue(data) : item.value}
+                  </span>
+                </div>
+              ))}
+              <p className="text-xs text-muted-foreground">
                 Para detalles completos, consulte la documentación generada.
               </p>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-primary">GENERAR Y DESCARGAR DOCUMENTACIÓN</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Button
-                className="w-full bg-primary hover:bg-primary/90"
-                size="lg"
-                onClick={() => setShowSchemeModal(true)}
-              >
-                <FileText className="mr-2 h-5 w-5" />
-                Generar Documentación (PDF)
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                size="lg"
-                onClick={() => setShowSchemeModal(true)}
-              >
-                <Download className="mr-2 h-5 w-5" />
-                Descargar Estudio / Proyecto
-              </Button>
-              <Button
-                className="w-full"
-                variant="outline"
-                size="lg"
-                onClick={() => setShowSchemeModal(true)}
-              >
-                <FileCheck className="mr-2 h-5 w-5" />
-                Descargar Fichas Técnicas
-              </Button>
-            </CardContent>
-          </Card>
+            <div className="border-t pt-4 space-y-8">
+              <h4 className="text-sm font-semibold text-primary">Generar y descargar documentación</h4>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <Button
+                  className="bg-primary hover:bg-primary/90"
+                  size="sm"
+                  onClick={() => setShowSchemeModal(true)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Documentación (PDF)
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSchemeModal(true)}
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Estudio/proyecto
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSchemeModal(true)}
+                >
+                  <FileCheck className="mr-2 h-4 w-4" />
+                  Fichas técnicas
+                </Button>
+              </div>
+            </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-primary">Verificación y Consentimiento</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <h6 className="font-semibold text-primary">Verificación de Seguridad</h6>
+            <div className="border-t pt-4 space-y-8">
+              <h6 className="text-sm font-semibold text-primary">Verificación y consentimiento</h6>
+              <div className="space-y-8">
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     id="captchaCheck"
                     checked={data.captchaCheck || false}
-                    onCheckedChange={(checked) => onChange('captchaCheck', checked)}
+                    onCheckedChange={(checked) => onChange('captchaCheck', checked === true)}
                   />
                   <Label htmlFor="captchaCheck" className="cursor-pointer">
                     No soy un robot
                   </Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="termsConsent"
+                    checked={data.termsConsent || false}
+                    onCheckedChange={(checked) => onChange('termsConsent', checked === true)}
+                  />
+                  <Label htmlFor="termsConsent" className="cursor-pointer text-sm">
+                    Acepto los{' '}
+                    <a href="#" className="text-primary underline">
+                      términos y condiciones
+                    </a>{' '}
+                    y la{' '}
+                    <a href="#" className="text-primary underline">
+                      política de privacidad
+                    </a>
+                    .
+                  </Label>
+                </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="termsConsent"
-                  checked={data.termsConsent || false}
-                  onCheckedChange={(checked) => onChange('termsConsent', checked)}
-                />
-                <Label htmlFor="termsConsent" className="cursor-pointer text-sm">
-                  Acepto los{' '}
-                  <a href="#" className="text-primary underline">
-                    términos y condiciones
-                  </a>{' '}
-                  y la{' '}
-                  <a href="#" className="text-primary underline">
-                    política de privacidad
-                  </a>
-                  .
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modal de Materiales Externos */}
@@ -380,7 +332,7 @@ export function QuoteRequestStep({ data, onChange }: QuoteRequestStepProps) {
           <DialogHeader>
             <DialogTitle className="text-primary">Esquema de Protección - Vista Final</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-8">
             {data.schemeImage ? (
               <>
                 <div className="rounded-lg border bg-muted/50 p-4">

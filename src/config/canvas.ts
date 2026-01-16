@@ -2,6 +2,8 @@
  * Configuración del canvas de esquema de protección
  */
 
+import { COLOR_TOKENS } from '@/lib/colorTokens'
+
 /**
  * Escala de conversión entre píxeles y metros
  * 1 metro = 3 píxeles en el canvas
@@ -23,8 +25,8 @@ export const GRID_CONFIG = {
   size: 25, // Tamaño de celda en píxeles
   heavyMultiplier: 5, // Cada N líneas es más gruesa
   colors: {
-    normal: '#d0d0d0',
-    heavy: '#b0b0b0',
+    normal: COLOR_TOKENS.gridNormal,
+    heavy: COLOR_TOKENS.gridHeavy,
   },
 } as const
 
@@ -47,45 +49,45 @@ export const CLICK_TOLERANCE_PX = 15
 export const CANVAS_COLORS = {
   // Edificio
   building: {
-    stroke: '#243469', // Azul corporativo
+    stroke: COLOR_TOKENS.brandBlue, // Azul corporativo
     strokeWidth: 2,
-    fill: 'rgba(247, 168, 0, 0.25)', // Amarillo semi-transparente
+    fill: COLOR_TOKENS.brandYellowAlpha, // Amarillo semi-transparente
   },
 
   // Área en construcción (dibujando)
   drawing: {
-    strokeBorder: '#243469',
+    strokeBorder: COLOR_TOKENS.brandBlue,
     strokeBorderWidth: 8,
-    strokeMain: '#f7a800',
+    strokeMain: COLOR_TOKENS.brandYellow,
     strokeMainWidth: 4,
-    vertexFill: '#f7a800',
-    vertexStroke: '#243469',
+    vertexFill: COLOR_TOKENS.brandYellow,
+    vertexStroke: COLOR_TOKENS.brandBlue,
     vertexRadius: 6,
-    firstVertexFill: '#22c55e', // Verde cuando es clicable
-    firstVertexStroke: '#16a34a',
+    firstVertexFill: COLOR_TOKENS.success, // Verde cuando es clicable
+    firstVertexStroke: COLOR_TOKENS.successDark,
     firstVertexRadius: 10,
   },
 
   // Zonas de protección
   protection: {
-    stroke: '#f7a800',
+    stroke: COLOR_TOKENS.brandYellow,
     strokeWidth: 2,
     dash: [10, 5],
     fill: 'transparent',
-    iconColor: '#f7a800',
+    iconColor: COLOR_TOKENS.brandYellow,
   },
 
   // Cobertura
   coverage: {
-    uncovered: 'rgba(239, 68, 68, 0.3)', // Rojo semi-transparente
-    covered: 'rgba(34, 197, 94, 0.2)', // Verde semi-transparente
+    uncovered: COLOR_TOKENS.dangerAlpha, // Rojo semi-transparente
+    covered: COLOR_TOKENS.successAlpha, // Verde semi-transparente
   },
 
   // Etiquetas de distancia
   labels: {
-    background: '#243469',
+    background: COLOR_TOKENS.brandBlue,
     backgroundWidth: 4,
-    text: '#ffffff',
+    text: COLOR_TOKENS.white,
     fontSize: 14,
   },
 } as const

@@ -5,9 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { CircleAlert } from 'lucide-react'
 
 import type { ProjectDataStepProps } from '@/types/stepProps'
-import { COUNTRIES, NORMATIVES } from '@/config/formConfig'
+import { COUNTRIES, NORMATIVES, getTranslatedOptions } from '@/config/formConfig'
 
 /**
  * Paso 1: Datos del Proyecto
@@ -15,19 +16,25 @@ import { COUNTRIES, NORMATIVES } from '@/config/formConfig'
  */
 function ProjectDataStepInner({ data, onChange, onBulkChange }: ProjectDataStepProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Título */}
-      <p className="text-lg font-bold text-muted-foreground">
-        Cálculo de riesgo según norma IEC 62305-2, UNE 21186, NFC 17102, NP 4426 y equivalentes.
-      </p>
+    <div className="flex items-center gap-2 rounded-[10px] p-6 bg-[var(--brand-navy-08)] font-normal text-[11px] leading-none text-[var(--brand-navy)]">
+        <CircleAlert className="h-4 w-4 flex-shrink-0" />
+        <span>Cálculo de riesgo según norma IEC 62305-2, UNE 21186, NFC 17102, NP 4426 y equivalentes.</span>
+      </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="flex flex-col gap-6 md:flex-row md:items-stretch">
         {/* Columna izquierda: Datos del Proyecto */}
-        <Card>
+        <Card className="md:flex-1">
           <CardHeader>
-            <CardTitle className="text-primary">DATOS DEL PROYECTO</CardTitle>
+            <CardTitle
+              className="text-primary"
+              icon={<img src="/icons/Vector.svg" alt="" className="h-[15px] w-[15px]" />}
+            >
+              Datos del Proyecto
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-8">
             {/* Nombre Proyecto */}
             <div className="space-y-2">
               <Label htmlFor="projectName">
@@ -62,13 +69,31 @@ function ProjectDataStepInner({ data, onChange, onBulkChange }: ProjectDataStepP
                 <Label htmlFor="projectCountry">País</Label>
                 <Select
                   value={data.projectCountry || ''}
-                  onValueChange={(value) => onChange('projectCountry', value)}
+                  onValueChange={(value) => {
+                    // Si cambia de España a otro país, resetear checkboxes específicos de España
+                    if (data.projectCountry === 'ES' && value !== 'ES' && onBulkChange) {
+                      onBulkChange({
+                        projectCountry: value,
+                        protectedArea: false,
+                        touristCamp: false,
+                        calculationNormative: 'lightning',
+                      })
+                    } else if (onBulkChange) {
+                      // Para cualquier país, establecer lightning como default
+                      onBulkChange({
+                        projectCountry: value,
+                        calculationNormative: data.calculationNormative || 'lightning',
+                      })
+                    } else {
+                      onChange('projectCountry', value)
+                    }
+                  }}
                 >
-                  <SelectTrigger id="projectCountry">
+                  <SelectTrigger id="projectCountry" className="w-full">
                     <SelectValue placeholder="Selecciona un país" />
                   </SelectTrigger>
                   <SelectContent>
-                    {COUNTRIES.map((country) => (
+                    {getTranslatedOptions(COUNTRIES).map((country) => (
                       <SelectItem key={country.value} value={country.value}>
                         {country.label}
                       </SelectItem>
@@ -100,88 +125,86 @@ function ProjectDataStepInner({ data, onChange, onBulkChange }: ProjectDataStepP
               </div>
             </div>
 
-            {/* Edificios a proteger */}
-            <div className="space-y-2">
-              <Label htmlFor="buildingsToProtect">
-                Edificios a proteger <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="buildingsToProtect"
-                value={data.buildingsToProtect || 1}
-                readOnly
-                className="bg-muted"
-              />
-            </div>
+            {/* Edificios a proteger + Casos particulares en la misma fila */}
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2 col-span-1">
+                <Label htmlFor="buildingsToProtect">
+                  Edificios a proteger <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="buildingsToProtect"
+                  value={data.buildingsToProtect || 1}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
 
-            {/* Casos particulares */}
-            <div className="mt-4">
-              <Label className="mb-2 block">Casos particulares</Label>
-              <div className="space-y-3 rounded-md border p-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="newConstruction"
-                    checked={data.newConstruction || false}
-                    onCheckedChange={(checked) => onChange('newConstruction', checked === true)}
-                  />
-                  <Label htmlFor="newConstruction" className="cursor-pointer">
-                    Obra nueva
-                  </Label>
+              <div className="space-y-2 col-span-2">
+                <Label className="block">Casos particulares</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="newConstruction"
+                      checked={data.newConstruction || false}
+                      onCheckedChange={(checked) => onChange('newConstruction', checked === true)}
+                    />
+                    <Label htmlFor="newConstruction" className="cursor-pointer">
+                      Obra nueva
+                    </Label>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="workplace"
+                      checked={data.workplace || false}
+                      onCheckedChange={(checked) => onChange('workplace', checked === true)}
+                    />
+                    <Label htmlFor="workplace" className="cursor-pointer">
+                      Centro de trabajo
+                    </Label>
+                  </div>
+
+                  {/* Solo para España */}
+                  {data.projectCountry === 'ES' && (
+                    <>
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="protectedArea"
+                          checked={data.protectedArea || false}
+                          onCheckedChange={(checked) => onChange('protectedArea', checked === true)}
+                        />
+                        <Label htmlFor="protectedArea" className="cursor-pointer">
+                          Es una pirotécnia
+                        </Label>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="touristCamp"
+                          checked={data.touristCamp || false}
+                          onCheckedChange={(checked) => onChange('touristCamp', checked === true)}
+                        />
+                        <Label htmlFor="touristCamp" className="cursor-pointer">
+                          Campamento de turismo
+                        </Label>
+                      </div>
+                    </>
+                  )}
                 </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="workplace"
-                    checked={data.workplace || false}
-                    onCheckedChange={(checked) => onChange('workplace', checked === true)}
-                  />
-                  <Label htmlFor="workplace" className="cursor-pointer">
-                    Se utiliza como centro de trabajo
-                  </Label>
-                </div>
-
-                {/* Solo para España */}
-                {data.projectCountry === 'ES' && (
-                  <>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="protectedArea"
-                        checked={data.protectedArea || false}
-                        onCheckedChange={(checked) => onChange('protectedArea', checked === true)}
-                      />
-                      <Label htmlFor="protectedArea" className="cursor-pointer">
-                        Es una pirotécnia
-                      </Label>
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="touristCamp"
-                        checked={data.touristCamp || false}
-                        onCheckedChange={(checked) => onChange('touristCamp', checked === true)}
-                      />
-                      <Label htmlFor="touristCamp" className="cursor-pointer">
-                        Es un campamento de turismo
-                      </Label>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
 
             {/* Normativa para el cálculo - Solo para España */}
             {data.projectCountry === 'ES' && (
-              <div className="mt-4 space-y-2">
+              <div className="mt-4 space-y-8">
                 <Label>
                   Normativa para el cálculo
-                  <span className="ml-2 text-xs text-destructive font-normal">
-                    (Solo para proyectos en ESPAÑA)
-                  </span>
                 </Label>
                 <RadioGroup
                   value={data.calculationNormative || 'lightning'}
                   onValueChange={(value) => onChange('calculationNormative', value as 'lightning' | 'cte')}
                 >
-                  {NORMATIVES.map((option) => (
+                  {getTranslatedOptions(NORMATIVES).map((option) => (
                     <div key={option.value} className="flex items-center space-x-2">
                       <RadioGroupItem value={option.value} id={`normative-${option.value}`} />
                       <Label htmlFor={`normative-${option.value}`} className="cursor-pointer font-normal">
@@ -196,11 +219,16 @@ function ProjectDataStepInner({ data, onChange, onBulkChange }: ProjectDataStepP
         </Card>
 
         {/* Columna derecha: Datos Proyectista */}
-        <Card>
+        <Card className="md:flex-1">
           <CardHeader>
-            <CardTitle className="text-primary">DATOS PROYECTISTA</CardTitle>
+            <CardTitle
+              className="text-primary"
+              icon={<img src="/icons/Frame.svg" alt="" className="h-[15px] w-[15px]" />}
+            >
+              Datos Proyectista
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-8">
             {/* Empresa/Nombre */}
             <div className="space-y-2">
               <Label htmlFor="clientName">
@@ -290,7 +318,7 @@ function ProjectDataStepInner({ data, onChange, onBulkChange }: ProjectDataStepP
             </div>
 
             {/* Separador para sección Contacto */}
-            <div className="my-4 space-y-4 border-t pt-4">
+            <div className="my-4 space-y-8 ">
               {/* Nombre del contacto */}
               <div className="space-y-2">
                 <Label htmlFor="contactName">

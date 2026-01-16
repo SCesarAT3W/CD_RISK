@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
-import { Stage, Layer, Line, Circle, Image as KonvaImage, Text, Group } from 'react-konva'
+import { Stage, Layer, Line, Circle, Image as KonvaImage, Group, Text } from 'react-konva'
 import type { KonvaEventObject } from 'konva/lib/Node'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Slider } from '@/components/ui/slider'
-import { Upload, Plus, Trash2, Calculator, LayoutGrid, Check } from 'lucide-react'
+import { Upload, LayoutGrid, PenTool, RotateCcw, Move, ZoomIn, ZoomOut, Check, Ruler, Pencil, Hexagon } from 'lucide-react'
 import useImage from 'use-image'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useConfirmDialog } from '@/hooks/useConfirmDialog'
 import { toast } from 'sonner'
+import { logger } from '@/lib/logger'
+import { COLOR_TOKENS } from '@/lib/colorTokens'
+import { COVERAGE_CONFIG } from '@/config/canvas'
 
 interface Point {
   x: number
@@ -42,6 +44,7 @@ interface ProtectionSchemeCanvasProps {
   protectionLevel?: string
   buildingLength?: number // Longitud del edificio en metros (del Paso 2)
   buildingWidth?: number // Anchura del edificio en metros (del Paso 2)
+  buildingName?: string // Nombre del edificio para mostrar en el mapa
   mastType?: string
   mastHeight?: string
   anchorType?: string
@@ -50,6 +53,7 @@ interface ProtectionSchemeCanvasProps {
   selectedZoneId?: string // ID del pararrayos seleccionado para resaltarlo
   onZonesChange?: (zones: ProtectionZone[]) => void
   onCaptureImage?: (imageData: string, timestamp: number) => void // Callback para capturar imagen del canvas
+  onDrawingModeChange?: (isDrawing: boolean, pointsCount: number, cancelFn: () => void, hasStructure: boolean, editFn: () => void, deleteFn: () => void) => void // Callback para modo de dibujo
 }
 
 // Tabla de radios de protección (en metros)
@@ -64,68 +68,189 @@ const PROTECTION_RADII: Record<string, Record<string, number>> = {
   'DAT CONTROLER REMOTE 60': { I: 79, II: 87, III: 97, IV: 107 },
 }
 
-const PIXELS_PER_METER = 3 // Escala: 1 metro = 3 píxeles
+const DEFAULT_PIXELS_PER_METER = 3 // Escala por defecto: 1 metro = 3 píxeles
 
-function BackgroundImage({ image }: { image: string }) {
+function BackgroundImage({ image, width, height }: { image: string; width: number; height: number }) {
   const [img] = useImage(image)
-  return <KonvaImage image={img} />
+  return <KonvaImage image={img} width={width} height={height} />
+}
+
+const ZAP_ICON_PATH = 'M13 2 L3 14 h9 l-1 8 10-12 h-9 Z'
+const buildZapIconUri = (color: string) => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="${color}" stroke-width="1"><path d="${ZAP_ICON_PATH}"/></svg>`
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
+}
+
+// Color único para todas las zonas de protección
+const ZONE_COLOR = {
+  stroke: COLOR_TOKENS.brandBlue, // Borde azul corporativo del pararrayos
+  fill: 'rgba(212, 133, 13, 0.20)', // Relleno naranja/ámbar
+  icon: '#D4850D', // Icono del rayo naranja
+  badgeFill: COLOR_TOKENS.brandBlue, // Fondo azul corporativo del badge
+  badgeText: COLOR_TOKENS.white, // Número blanco
+}
+
+// Límites del área para restringir arrastre
+interface AreaBounds {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
 }
 
 // Componente memoizado para las zonas de protección (evita re-renders innecesarios)
 interface ProtectionZoneCircleProps {
   zone: ProtectionZone
+  zoneNumber: number
   isSelected: boolean
+  areaBounds: AreaBounds | null
+  areaPoints: number[] | null // Puntos del polígono para restricción precisa
   onZoneClick: (zoneId: string, e: KonvaEventObject<MouseEvent>) => void
   onDragStart: (e: KonvaEventObject<DragEvent>) => void
-  onDragMove: (zoneId: string, newX: number, newY: number, e: KonvaEventObject<DragEvent>) => void
   onDragEnd: (zone: ProtectionZone, e: KonvaEventObject<DragEvent>) => void
 }
 
 const ProtectionZoneCircle = React.memo(({
   zone,
+  zoneNumber,
   isSelected,
+  areaBounds,
+  areaPoints,
   onZoneClick,
   onDragStart,
-  onDragMove,
   onDragEnd
 }: ProtectionZoneCircleProps) => {
-  // Estilos diferentes para el pararrayos seleccionado
-  const strokeColor = isSelected ? '#3b82f6' : '#f7a800' // Azul en lugar de verde
-  const strokeWidth = isSelected ? 4 : 2
-  const fillOpacity = isSelected ? 0.1 : 0
-  const iconSize = isSelected ? 28 : 24
+  // Usar color único para todas las zonas
+  const strokeColor = ZONE_COLOR.stroke
+  const fillColor = ZONE_COLOR.fill
+  const iconColor = ZONE_COLOR.icon
+  const badgeFillColor = ZONE_COLOR.badgeFill
+  const badgeTextColor = ZONE_COLOR.badgeText
+
+  const outerStrokeWidth = isSelected ? 2 : 1.5
+  const innerStrokeWidth = isSelected ? 1.5 : 1
+  const iconSize = isSelected ? 32 : 28
+  const [zapImage] = useImage(buildZapIconUri(iconColor))
+
+  // Badge con número
+  const badgeRadius = 10
+  const badgeOffsetY = -iconSize / 2 - badgeRadius - 2
+
+  // Opacidad según selección
+  const groupOpacity = isSelected ? 1 : 0.5
+
+  // Última posición válida dentro del polígono
+  const lastValidPosition = useRef({ x: zone.x, y: zone.y })
+
+  // Función para verificar si un punto está dentro del polígono (ray casting)
+  const isPointInPolygon = useCallback((px: number, py: number): boolean => {
+    if (!areaPoints || areaPoints.length < 6) return true // Si no hay polígono, permitir
+    let inside = false
+    const n = areaPoints.length / 2
+    for (let i = 0, j = n - 1; i < n; j = i++) {
+      const xi = areaPoints[i * 2], yi = areaPoints[i * 2 + 1]
+      const xj = areaPoints[j * 2], yj = areaPoints[j * 2 + 1]
+      if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
+        inside = !inside
+      }
+    }
+    return inside
+  }, [areaPoints])
+
+  // Handler de movimiento - solo usa bounding box para mejor rendimiento
+  // La verificación del polígono se hace al soltar (onDragEnd)
+  const handleDragMove = useCallback((e: KonvaEventObject<DragEvent>) => {
+    e.cancelBubble = true
+
+    if (!areaBounds) return
+
+    // Obtener posición actual
+    let newX = e.target.x()
+    let newY = e.target.y()
+
+    // Solo restringir al bounding box durante el arrastre (rápido)
+    newX = Math.max(areaBounds.minX, Math.min(areaBounds.maxX, newX))
+    newY = Math.max(areaBounds.minY, Math.min(areaBounds.maxY, newY))
+
+    e.target.x(newX)
+    e.target.y(newY)
+  }, [areaBounds])
+
+  // Verificar polígono al soltar y ajustar si es necesario
+  const handleLocalDragEnd = useCallback((e: KonvaEventObject<DragEvent>) => {
+    const newX = e.target.x()
+    const newY = e.target.y()
+
+    // Verificar si está dentro del polígono
+    if (!isPointInPolygon(newX, newY)) {
+      // Fuera del polígono, volver a última posición válida
+      e.target.x(lastValidPosition.current.x)
+      e.target.y(lastValidPosition.current.y)
+    } else {
+      // Posición válida, guardarla
+      lastValidPosition.current = { x: newX, y: newY }
+    }
+
+    onDragEnd(zone, e)
+  }, [isPointInPolygon, onDragEnd, zone])
 
   return (
     <Group
       x={zone.x}
       y={zone.y}
-      draggable
+      draggable={isSelected}
+      opacity={groupOpacity}
       onClick={(e) => onZoneClick(zone.id, e)}
       onDragStart={onDragStart}
-      onDragMove={(e) => {
-        e.cancelBubble = true
-        const newX = e.target.x()
-        const newY = e.target.y()
-        onDragMove(zone.id, newX, newY, e)
-      }}
-      onDragEnd={(e) => onDragEnd(zone, e)}
+      onDragMove={handleDragMove}
+      onDragEnd={handleLocalDragEnd}
     >
       <Circle
         x={0}
         y={0}
         radius={zone.radius}
         stroke={strokeColor}
-        strokeWidth={strokeWidth}
-        dash={[10, 5]}
-        fill={isSelected ? strokeColor : 'transparent'}
-        opacity={isSelected ? fillOpacity : 1}
+        strokeWidth={outerStrokeWidth}
+        fill={fillColor}
+      />
+      <Circle
+        x={0}
+        y={0}
+        radius={Math.max(zone.radius - 10, 4)}
+        stroke={strokeColor}
+        strokeWidth={innerStrokeWidth}
+        dash={[4, 4]}
+        fill="transparent"
+      />
+      {zapImage && (
+        <KonvaImage
+          image={zapImage}
+          x={-iconSize / 2}
+          y={-iconSize / 2}
+          width={iconSize}
+          height={iconSize}
+          listening={false}
+        />
+      )}
+      {/* Badge con número encima del rayo */}
+      <Circle
+        x={0}
+        y={badgeOffsetY}
+        radius={badgeRadius}
+        fill={badgeFillColor}
+        listening={false}
       />
       <Text
-        x={isSelected ? -14 : -10}
-        y={isSelected ? -14 : -10}
-        text="⚡"
-        fontSize={iconSize}
-        fill={strokeColor}
+        x={-badgeRadius}
+        y={badgeOffsetY - badgeRadius / 2 - 1}
+        width={badgeRadius * 2}
+        height={badgeRadius}
+        text={String(zoneNumber)}
+        fontSize={12}
+        fontStyle="bold"
+        fill={badgeTextColor}
+        align="center"
+        verticalAlign="middle"
         listening={false}
       />
     </Group>
@@ -137,31 +262,31 @@ function ProtectionSchemeCanvas({
   protectionLevel = 'III',
   buildingLength = 80,
   buildingWidth = 50,
-  mastType,
-  mastHeight,
-  anchorType,
-  anchorSeparation,
+  buildingName = '',
   initialProtectionZones = [],
   selectedZoneId,
   onZonesChange,
   onCaptureImage,
+  onDrawingModeChange,
 }: ProtectionSchemeCanvasProps) {
   const [mode, setMode] = useState<'select' | 'map' | 'grid' | null>('select')
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [scale, setScale] = useState(100)
   const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 })
-  const [drawingMode, setDrawingMode] = useState<'area' | 'none'>('none')
+  const [drawingMode, setDrawingMode] = useState<'area' | 'edit' | 'none'>('none')
   const [isDraggingZone, setIsDraggingZone] = useState(false)
   const [currentArea, setCurrentArea] = useState<Point[]>([])
   const [areas, setAreas] = useState<Area[]>([])
+  const [draggingVertexIndex, setDraggingVertexIndex] = useState<number | null>(null)
+  const [editingAreaId, setEditingAreaId] = useState<string | null>(null)
   const [protectionZones, setProtectionZones] = useState<ProtectionZone[]>([])
-  const [selectedZone, setSelectedZone] = useState<string | null>(null)
   const [customDistances, setCustomDistances] = useState<Record<string, number>>({})
+  const [dynamicPixelsPerMeter, setDynamicPixelsPerMeter] = useState(DEFAULT_PIXELS_PER_METER)
+  const zoomScale = scale / 100
 
   // Memoizar handler de selección de zona para prevenir re-renders
-  const handleZoneClick = useCallback((zoneId: string, e: KonvaEventObject<MouseEvent>) => {
+  const handleZoneClick = useCallback((_zoneId: string, e: KonvaEventObject<MouseEvent>) => {
     e.cancelBubble = true
-    setSelectedZone(zoneId)
   }, [])
 
   // Memoizar handler de inicio de arrastre
@@ -169,19 +294,6 @@ function ProtectionSchemeCanvas({
     e.cancelBubble = true
     setIsDraggingZone(true)
   }, [])
-
-  // Memoizar handler de movimiento durante arrastre
-  // Durante el arrastre, Konva maneja la posición visual internamente
-  // No actualizamos el estado React para evitar re-renders innecesarios
-  const handleZoneDragMove = useCallback((_zoneId: string, _newX: number, _newY: number, e: KonvaEventObject<DragEvent>) => {
-    e.cancelBubble = true
-    // No llamamos a setProtectionZones aquí - solo en handleZoneDragEnd
-  }, [])
-
-  // Verificar si un punto está dentro de cualquier área dibujada
-  const isPointInAnyArea = useCallback((point: Point): boolean => {
-    return areas.some((area) => isPointInPolygon(point, area.points))
-  }, [areas])
 
   // Memoizar handler de fin de arrastre
   const handleZoneDragEnd = useCallback((zone: ProtectionZone, e: KonvaEventObject<DragEvent>) => {
@@ -212,7 +324,7 @@ function ProtectionSchemeCanvas({
 
     // Confirmar la posición final
     const newZones = protectionZones.map((z) =>
-      z.id === zone.id ? { ...z, x: newX, y: newY } : z
+      z.id === zone.id ? { ...z, x: newX, y: newY, placedOnMap: true } : z
     )
     setProtectionZones(newZones)
     onZonesChange?.(newZones)
@@ -224,17 +336,265 @@ function ProtectionSchemeCanvas({
     currentValue: number
   } | null>(null)
   const [newMeasurementValue, setNewMeasurementValue] = useState('')
-  const [hoveredMeasurement, setHoveredMeasurement] = useState<string | null>(null)
+
+  // Estados para calibración (modo mapa) - selección de lado que representa el ancho
+  const [pendingArea, setPendingArea] = useState<{ points: number[], currentArea: Point[] } | null>(null)
+  const [selectingWidthSide, setSelectingWidthSide] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const stageRef = useRef<any>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   const onZonesChangeRef = useRef(onZonesChange)
   const onCaptureImageRef = useRef(onCaptureImage)
 
-  // Hook para diálogos de confirmación
-  const { dialogState, showConfirm, handleConfirm, handleCancel } = useConfirmDialog()
+  // Refs para generación automática de grid
+  const hasGeneratedGridArea = useRef(false)
+  const isSettingUpGrid = useRef(false)
+  const lastDimensions = useRef({ width: 0, height: 0 })
+  const userDeletedStructure = useRef(false)
 
-  const stageWidth = 800
-  const stageHeight = 500
+  // Función para cancelar el modo dibujo
+  const cancelDrawing = useCallback(() => {
+    setDrawingMode('none')
+    setCurrentArea([])
+  }, [])
+
+  // Función para eliminar la estructura y los pararrayos
+  const deleteStructure = useCallback(() => {
+    // Marcar que la estructura fue eliminada manualmente para evitar regeneración automática
+    hasGeneratedGridArea.current = true // Mantener en true para evitar que se regenere
+    userDeletedStructure.current = true // Flag para indicar eliminación manual
+
+    setAreas([])
+    setCurrentArea([])
+    setDrawingMode('none')
+    setProtectionZones([])
+    setDynamicPixelsPerMeter(DEFAULT_PIXELS_PER_METER)
+    onZonesChange?.([])
+  }, [onZonesChange])
+
+  // Función para resetear completamente el canvas (quitar imagen y volver a selección)
+  const resetCanvas = useCallback(() => {
+    setUploadedImage(null)
+    setAreas([])
+    setCurrentArea([])
+    setDrawingMode('none')
+    setMode('select')
+    setScale(100)
+    setStagePosition({ x: 0, y: 0 })
+    setProtectionZones([])
+    setDynamicPixelsPerMeter(DEFAULT_PIXELS_PER_METER)
+    onZonesChange?.([])
+    hasGeneratedGridArea.current = false
+  }, [onZonesChange])
+
+  // Verificar si hay estructura dibujada (incluye modo edición)
+  const hasStructure = areas.length > 0 && (drawingMode === 'none' || drawingMode === 'edit')
+
+  // Handler para iniciar arrastre de vértice
+  const handleVertexDragStart = useCallback((index: number) => {
+    setDraggingVertexIndex(index)
+  }, [])
+
+  // Handler para mover vértice durante arrastre
+  const handleVertexDragMove = useCallback((areaId: string, vertexIndex: number, newX: number, newY: number) => {
+    setAreas(prevAreas => prevAreas.map(area => {
+      if (area.id !== areaId) return area
+      const newPoints = [...area.points]
+      newPoints[vertexIndex * 2] = newX
+      newPoints[vertexIndex * 2 + 1] = newY
+      return { ...area, points: newPoints }
+    }))
+  }, [])
+
+  // Handler para finalizar arrastre de vértice
+  const handleVertexDragEnd = useCallback(() => {
+    setDraggingVertexIndex(null)
+    // Recalcular escala basada en dimensiones lineales del bounding box
+    if (areas.length > 0) {
+      const areaPoints = areas[0].points
+      const xCoords = areaPoints.filter((_, i) => i % 2 === 0)
+      const yCoords = areaPoints.filter((_, i) => i % 2 === 1)
+      const drawnWidthPx = Math.max(...xCoords) - Math.min(...xCoords)
+      const drawnHeightPx = Math.max(...yCoords) - Math.min(...yCoords)
+      if (drawnWidthPx > 0 && drawnHeightPx > 0 && buildingLength > 0 && buildingWidth > 0) {
+        const scaleX = drawnWidthPx / buildingLength
+        const scaleY = drawnHeightPx / buildingWidth
+        const calculatedPxPerMeter = (scaleX + scaleY) / 2
+        setDynamicPixelsPerMeter(calculatedPxPerMeter)
+      }
+    }
+  }, [areas, buildingLength, buildingWidth])
+
+  // Handler para escalar toda la estructura
+  const handleScaleStructure = useCallback((scaleFactor: number) => {
+    if (areas.length === 0) return
+
+    setAreas(prevAreas => prevAreas.map(area => {
+      const points = area.points
+      // Calcular centro del polígono
+      const xCoords = points.filter((_, i) => i % 2 === 0)
+      const yCoords = points.filter((_, i) => i % 2 === 1)
+      const centerX = (Math.min(...xCoords) + Math.max(...xCoords)) / 2
+      const centerY = (Math.min(...yCoords) + Math.max(...yCoords)) / 2
+
+      // Escalar cada punto desde el centro
+      const newPoints = points.map((coord, i) => {
+        if (i % 2 === 0) {
+          // X coordinate
+          return centerX + (coord - centerX) * scaleFactor
+        } else {
+          // Y coordinate
+          return centerY + (coord - centerY) * scaleFactor
+        }
+      })
+
+      return { ...area, points: newPoints }
+    }))
+  }, [areas])
+
+  // Referencia para finishEditing (se asigna después de placeZonesInArea)
+  const finishEditingRef = useRef<() => void>(() => {})
+
+  // Hook para diálogos de confirmación
+  const { dialogState, handleConfirm, handleCancel } = useConfirmDialog()
+
+  // Dimensiones responsivas del canvas
+  const [stageDimensions, setStageDimensions] = useState({ width: 800, height: 500 })
+
+  // Observar cambios de tamaño del contenedor
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          setStageDimensions({ width, height })
+        }
+      }
+    })
+
+    resizeObserver.observe(container)
+    return () => resizeObserver.disconnect()
+  }, [])
+
+  const stageWidth = stageDimensions.width
+  const stageHeight = stageDimensions.height
+
+  // Función para editar la estructura (entrar en modo edición)
+  const editStructure = useCallback(() => {
+    if (areas.length > 0) {
+      // Calcular centro del edificio
+      const points = areas[0].points
+      const xCoords = points.filter((_, i) => i % 2 === 0)
+      const yCoords = points.filter((_, i) => i % 2 === 1)
+      const buildingCenterX = (Math.min(...xCoords) + Math.max(...xCoords)) / 2
+      const buildingCenterY = (Math.min(...yCoords) + Math.max(...yCoords)) / 2
+
+      // Centrar la vista en el edificio con la escala actual
+      const currentScale = scale / 100
+      const viewportCenterX = stageWidth / 2
+      const viewportCenterY = stageHeight / 2
+      const newX = viewportCenterX - buildingCenterX * currentScale
+      const newY = viewportCenterY - buildingCenterY * currentScale
+
+      setStagePosition({ x: newX, y: newY })
+      setEditingAreaId(areas[0].id)
+      setDrawingMode('edit')
+    }
+  }, [areas, scale, stageWidth, stageHeight])
+
+  // Notificar cambios en el modo de dibujo (después de que editStructure esté definido)
+  useEffect(() => {
+    const isDrawingOrEditing = drawingMode === 'area' || drawingMode === 'edit'
+    onDrawingModeChange?.(isDrawingOrEditing, currentArea.length, cancelDrawing, hasStructure, editStructure, deleteStructure)
+  }, [drawingMode, currentArea.length, onDrawingModeChange, cancelDrawing, hasStructure, editStructure, deleteStructure])
+
+  // Calcular los límites del área para restringir el arrastre de pararrayos
+  const areaBounds = useMemo<AreaBounds | null>(() => {
+    if (areas.length === 0) return null
+    const points = areas[0].points
+    const xCoords = points.filter((_, i) => i % 2 === 0)
+    const yCoords = points.filter((_, i) => i % 2 === 1)
+    const bounds = {
+      minX: Math.min(...xCoords),
+      maxX: Math.max(...xCoords),
+      minY: Math.min(...yCoords),
+      maxY: Math.max(...yCoords)
+    }
+    return bounds
+  }, [areas])
+
+  // Calcular cobertura de protección (porcentaje del edificio cubierto por los círculos de protección)
+  const coveragePercent = useMemo<number>(() => {
+    if (areas.length === 0 || protectionZones.length === 0 || !areaBounds) return 0
+
+    const points = areas[0].points
+    if (points.length < 6) return 0 // Necesita al menos 3 puntos (6 coordenadas)
+
+    // Función para verificar si un punto está dentro del polígono (ray casting)
+    const isPointInPolygon = (px: number, py: number, polygon: number[]): boolean => {
+      let inside = false
+      const n = polygon.length / 2
+      for (let i = 0, j = n - 1; i < n; j = i++) {
+        const xi = polygon[i * 2], yi = polygon[i * 2 + 1]
+        const xj = polygon[j * 2], yj = polygon[j * 2 + 1]
+        if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
+          inside = !inside
+        }
+      }
+      return inside
+    }
+
+    // Función para verificar si un punto está cubierto por al menos un círculo de protección
+    const isPointCovered = (px: number, py: number): boolean => {
+      return protectionZones.some(zone => {
+        const dx = px - zone.x
+        const dy = py - zone.y
+        const distanceSquared = dx * dx + dy * dy
+        return distanceSquared <= zone.radius * zone.radius
+      })
+    }
+
+    // Muestreo de puntos dentro del edificio (grid de 50x50 puntos)
+    const gridResolution = 50
+    const stepX = (areaBounds.maxX - areaBounds.minX) / gridResolution
+    const stepY = (areaBounds.maxY - areaBounds.minY) / gridResolution
+
+    let pointsInsideBuilding = 0
+    let pointsCovered = 0
+
+    for (let i = 0; i <= gridResolution; i++) {
+      for (let j = 0; j <= gridResolution; j++) {
+        const px = areaBounds.minX + i * stepX
+        const py = areaBounds.minY + j * stepY
+
+        // Verificar si el punto está dentro del polígono del edificio
+        if (isPointInPolygon(px, py, points)) {
+          pointsInsideBuilding++
+          // Verificar si está cubierto por algún pararrayos
+          if (isPointCovered(px, py)) {
+            pointsCovered++
+          }
+        }
+      }
+    }
+
+    if (pointsInsideBuilding === 0) return 0
+    return (pointsCovered / pointsInsideBuilding) * 100
+  }, [areas, protectionZones, areaBounds])
+
+  const coverageLabel = useMemo(() => {
+    if (coveragePercent >= COVERAGE_CONFIG.minimumCoverage) return 'ALTO'
+    if (coveragePercent >= COVERAGE_CONFIG.minimumCoverage - 10) return 'MEDIO'
+    return 'BAJO'
+  }, [coveragePercent])
+
+  const coveragePercentLabel = useMemo(
+    () => coveragePercent.toFixed(1).replace('.', ','),
+    [coveragePercent]
+  )
 
   // Mantener las referencias actualizadas sin causar re-renders
   useEffect(() => {
@@ -242,75 +602,39 @@ function ProtectionSchemeCanvas({
     onCaptureImageRef.current = onCaptureImage
   })
 
-  // Calcular escala dinámica (píxeles por metro) basada en las medidas personalizadas
-  const dynamicPixelsPerMeter = useMemo(() => {
-    if (areas.length === 0) return PIXELS_PER_METER
-
-    const area = areas[0]
-    const points: Point[] = []
-    for (let i = 0; i < area.points.length; i += 2) {
-      points.push({ x: area.points[i], y: area.points[i + 1] })
+  const getDefaultZoneCenter = useCallback(() => {
+    if (areas.length > 0) {
+      const points = areas[0].points
+      const xPoints = points.filter((_, i) => i % 2 === 0)
+      const yPoints = points.filter((_, i) => i % 2 === 1)
+      const minX = Math.min(...xPoints)
+      const maxX = Math.max(...xPoints)
+      const minY = Math.min(...yPoints)
+      const maxY = Math.max(...yPoints)
+      return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
     }
 
-    // Calcular dimensiones del área en píxeles
-    const xCoords = points.map(p => p.x)
-    const yCoords = points.map(p => p.y)
-    const areaWidthPx = Math.max(...xCoords) - Math.min(...xCoords)
-    const areaHeightPx = Math.max(...yCoords) - Math.min(...yCoords)
+    return { x: stageWidth / 2, y: stageHeight / 2 }
+  }, [areas, stageWidth, stageHeight])
 
-    // Buscar la primera medida personalizada horizontal y vertical para calcular escala
-    let firstHorizontalPx = 0
-    let firstHorizontalMeters = 0
-    let firstVerticalPx = 0
-    let firstVerticalMeters = 0
-    let hasHorizontal = false
-    let hasVertical = false
-
-    points.forEach((point, idx) => {
-      const nextIdx = (idx + 1) % points.length
-      const nextPoint = points[nextIdx]
-
-      const deltaX = Math.abs(nextPoint.x - point.x)
-      const deltaY = Math.abs(nextPoint.y - point.y)
-      const isHorizontal = deltaX > deltaY
-
-      const distanceKey = `${area.id}-${idx}`
-      const customDistance = customDistances[distanceKey]
-
-      if (customDistance) {
-        const distancePx = Math.sqrt(
-          Math.pow(nextPoint.x - point.x, 2) + Math.pow(nextPoint.y - point.y, 2)
-        )
-
-        if (isHorizontal && !hasHorizontal) {
-          firstHorizontalPx = distancePx
-          firstHorizontalMeters = customDistance
-          hasHorizontal = true
-        } else if (!isHorizontal && !hasVertical) {
-          firstVerticalPx = distancePx
-          firstVerticalMeters = customDistance
-          hasVertical = true
-        }
+  const applyDefaultZonePosition = useCallback((zones: ProtectionZone[]) => {
+    const center = getDefaultZoneCenter()
+    let didAdjust = false
+    const nextZones = zones.map((zone) => {
+      const missingPosition = !Number.isFinite(zone.x) || !Number.isFinite(zone.y)
+      const needsCenter = missingPosition || !zone.placedOnMap
+      if (!needsCenter) return zone
+      didAdjust = true
+      return {
+        ...zone,
+        x: center.x,
+        y: center.y,
+        placedOnMap: true,
       }
     })
 
-    // Si hay medidas personalizadas, calcular escala basada en el primer lado de cada tipo
-    if (hasHorizontal && hasVertical) {
-      // Usar promedio de escalas horizontal y vertical
-      const scaleH = firstHorizontalPx / firstHorizontalMeters
-      const scaleV = firstVerticalPx / firstVerticalMeters
-      return (scaleH + scaleV) / 2
-    } else if (hasHorizontal) {
-      return firstHorizontalPx / firstHorizontalMeters
-    } else if (hasVertical) {
-      return firstVerticalPx / firstVerticalMeters
-    }
-
-    // Si no hay medidas personalizadas, usar las dimensiones del edificio
-    const scaleH = areaWidthPx / buildingLength
-    const scaleV = areaHeightPx / buildingWidth
-    return (scaleH + scaleV) / 2
-  }, [areas, customDistances, buildingLength, buildingWidth])
+    return { zones: nextZones, didAdjust }
+  }, [getDefaultZoneCenter])
 
   // Calcular radio de protección en píxeles usando escala dinámica
   const getProtectionRadius = (model: string, level: string): number => {
@@ -338,161 +662,23 @@ function ProtectionSchemeCanvas({
           radius: newRadius,
         }
       })
-      setProtectionZones(zonesWithUpdatedRadii)
-    }
-  }, [initialZonesSerializ, dynamicPixelsPerMeter, cabezalModel, protectionLevel])
-
-  // Verifica si un punto está cubierto por algún pararrayos
-  const isPointCovered = (point: Point, zones: ProtectionZone[]): boolean => {
-    return zones.some((zone) => {
-        const distance = Math.sqrt(
-          Math.pow(point.x - zone.x, 2) + Math.pow(point.y - zone.y, 2)
-        )
-        return distance <= zone.radius
-      })
-  }
-
-  // Calcular cobertura del área (retorna porcentaje 0-100)
-  const calculateCoverage = (): { coverage: number; uncoveredPoints: Point[] } => {
-    if (areas.length === 0) return { coverage: 100, uncoveredPoints: [] }
-
-    const area = areas[0]
-    const uncoveredPoints: Point[] = []
-
-    // Obtener bounds del área
-    const xCoords = area.points.filter((_, i) => i % 2 === 0)
-    const yCoords = area.points.filter((_, i) => i % 2 === 1)
-    const minX = Math.min(...xCoords)
-    const maxX = Math.max(...xCoords)
-    const minY = Math.min(...yCoords)
-    const maxY = Math.max(...yCoords)
-
-    // Crear cuadrícula de puntos para verificar cobertura
-    const gridSpacing = 20 // píxeles entre puntos de muestra
-    let totalPoints = 0
-    let coveredPoints = 0
-
-    for (let x = minX; x <= maxX; x += gridSpacing) {
-      for (let y = minY; y <= maxY; y += gridSpacing) {
-        const point = { x, y }
-        // Solo contar puntos dentro del área
-        if (isPointInPolygon(point, area.points)) {
-          totalPoints++
-          if (isPointCovered(point, protectionZones)) {
-            coveredPoints++
-          } else {
-            uncoveredPoints.push(point)
-          }
-        }
+      const { zones: centeredZones, didAdjust } = applyDefaultZonePosition(zonesWithUpdatedRadii)
+      setProtectionZones(centeredZones)
+      if (didAdjust) {
+        onZonesChangeRef.current?.(centeredZones)
       }
     }
+  }, [initialZonesSerializ, dynamicPixelsPerMeter, cabezalModel, protectionLevel, applyDefaultZonePosition])
 
-    const coverage = totalPoints > 0 ? (coveredPoints / totalPoints) * 100 : 0
-    return { coverage, uncoveredPoints }
-  }
-
-  // Optimizar ubicación de pararrayos automáticamente
-  const handleOptimizeParrays = useCallback(() => {
-    if (areas.length === 0) {
-      toast.warning('Primero debes dibujar el área del edificio.')
-      return
+  useEffect(() => {
+    if (protectionZones.length === 0) return
+    const { zones: centeredZones, didAdjust } = applyDefaultZonePosition(protectionZones)
+    if (didAdjust) {
+      setProtectionZones(centeredZones)
+      onZonesChangeRef.current?.(centeredZones)
     }
+  }, [areas.length, stageWidth, stageHeight, applyDefaultZonePosition, protectionZones])
 
-    const { coverage, uncoveredPoints } = calculateCoverage()
-
-    if (coverage >= 95) {
-      toast.success(`La cobertura actual es del ${coverage.toFixed(1)}%. El edificio está bien protegido.`)
-      return
-    }
-
-    // Agrupar puntos no cubiertos en clusters usando un algoritmo simple
-    const radius = getProtectionRadius(cabezalModel, protectionLevel)
-    const newZones: ProtectionZone[] = [...protectionZones]
-
-    // Mientras haya puntos sin cubrir, añadir pararrayos
-    let remainingPoints = [...uncoveredPoints]
-    let iterations = 0
-    const maxIterations = 10 // Límite de seguridad
-
-    while (remainingPoints.length > 0 && iterations < maxIterations) {
-      // Encontrar el centroide de los puntos no cubiertos
-      const sumX = remainingPoints.reduce((sum, p) => sum + p.x, 0)
-      const sumY = remainingPoints.reduce((sum, p) => sum + p.y, 0)
-      const centroid = {
-        x: sumX / remainingPoints.length,
-        y: sumY / remainingPoints.length,
-      }
-
-      // Verificar que el centroide esté dentro del área
-      if (!isPointInPolygon(centroid, areas[0].points)) {
-        // Si el centroide está fuera, usar el primer punto no cubierto
-        centroid.x = remainingPoints[0].x
-        centroid.y = remainingPoints[0].y
-      }
-
-      // Añadir nuevo pararrayos en el centroide
-      const newZone: ProtectionZone = {
-        id: `zone-auto-${Date.now()}-${iterations}`,
-        x: centroid.x,
-        y: centroid.y,
-        radius,
-        model: cabezalModel,
-        level: protectionLevel,
-        mastType,
-        mastHeight,
-        anchorType,
-        anchorSeparation,
-        placedOnMap: true,
-      }
-      newZones.push(newZone)
-
-      // Filtrar puntos que ahora están cubiertos
-      remainingPoints = remainingPoints.filter((point) => {
-        const distance = Math.sqrt(
-          Math.pow(point.x - centroid.x, 2) + Math.pow(point.y - centroid.y, 2)
-        )
-        return distance > radius
-      })
-
-      iterations++
-    }
-
-    // Actualizar estado
-    setProtectionZones(newZones)
-    onZonesChangeRef.current?.(newZones)
-
-    const finalCoverage = calculateCoverage()
-    toast.success('Optimización completa', {
-      description:
-        `Pararrayos añadidos: ${newZones.length - protectionZones.length}\n` +
-        `Cobertura anterior: ${coverage.toFixed(1)}%\n` +
-        `Cobertura actual: ${finalCoverage.coverage.toFixed(1)}%\n` +
-        `Total de pararrayos: ${newZones.length}`,
-    })
-  }, [areas, protectionZones, cabezalModel, protectionLevel, mastType, mastHeight, anchorType, anchorSeparation, dynamicPixelsPerMeter])
-
-  // Verificar si un punto está dentro de un polígono (algoritmo ray casting)
-  const isPointInPolygon = (point: Point, polygonPoints: number[]): boolean => {
-    const x = point.x
-    const y = point.y
-    let inside = false
-
-    for (let i = 0, j = polygonPoints.length - 2; i < polygonPoints.length; i += 2) {
-      const xi = polygonPoints[i]
-      const yi = polygonPoints[i + 1]
-      const xj = polygonPoints[j]
-      const yj = polygonPoints[j + 1]
-
-      const intersect =
-        yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi
-
-      if (intersect) inside = !inside
-
-      j = i
-    }
-
-    return inside
-  }
   // Manejar subida de imagen
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -501,6 +687,7 @@ function ProtectionSchemeCanvas({
       reader.onload = (event) => {
         setUploadedImage(event.target?.result as string)
         setMode('map')
+        setDrawingMode('area') // Activar dibujo automáticamente
       }
       reader.readAsDataURL(file)
     }
@@ -510,30 +697,27 @@ function ProtectionSchemeCanvas({
   const renderGrid = () => {
     const lines = []
     const gridSize = 25
-    const heavyGridSize = gridSize * 5
 
     // Líneas verticales
     for (let i = 0; i <= stageWidth; i += gridSize) {
-      const isHeavy = i % heavyGridSize === 0
       lines.push(
         <Line
           key={`v-${i}`}
           points={[i, 0, i, stageHeight]}
-          stroke={isHeavy ? '#b0b0b0' : '#d0d0d0'}
-          strokeWidth={isHeavy ? 1.5 : 1}
+          stroke={COLOR_TOKENS.gridLight}
+          strokeWidth={0.5}
         />
       )
     }
 
     // Líneas horizontales
     for (let i = 0; i <= stageHeight; i += gridSize) {
-      const isHeavy = i % heavyGridSize === 0
       lines.push(
         <Line
           key={`h-${i}`}
           points={[0, i, stageWidth, i]}
-          stroke={isHeavy ? '#b0b0b0' : '#d0d0d0'}
-          strokeWidth={isHeavy ? 1.5 : 1}
+          stroke={COLOR_TOKENS.gridLight}
+          strokeWidth={0.5}
         />
       )
     }
@@ -541,18 +725,326 @@ function ProtectionSchemeCanvas({
     return lines
   }
 
-  // Función para cerrar el polígono
+  // Calcular el área de un polígono (en píxeles cuadrados)
+  const calculatePolygonArea = (points: number[]): number => {
+    let area = 0
+    const n = points.length / 2
+    for (let i = 0; i < n; i++) {
+      const j = (i + 1) % n
+      area += points[i * 2] * points[j * 2 + 1]
+      area -= points[j * 2] * points[i * 2 + 1]
+    }
+    return Math.abs(area / 2)
+  }
+
+  // Calcular cuántos pararrayos se necesitan para cubrir un área (estimación inicial)
+  const calculateRequiredZones = (areaPoints: number[], radiusPixels: number): number => {
+    const buildingArea = calculatePolygonArea(areaPoints)
+    const zoneArea = Math.PI * radiusPixels * radiusPixels
+    // Usar factor de eficiencia del 40% para garantizar mayor cobertura inicial
+    const effectiveZoneArea = zoneArea * 0.4
+    return Math.max(1, Math.ceil(buildingArea / effectiveZoneArea))
+  }
+
+  // Función para verificar cobertura de un conjunto de zonas sobre el edificio
+  const checkCoverage = (areaPoints: number[], zones: { x: number; y: number; radius: number }[]): number => {
+    if (zones.length === 0) return 0
+
+    // Calcular bounding box
+    const xCoords = areaPoints.filter((_, i) => i % 2 === 0)
+    const yCoords = areaPoints.filter((_, i) => i % 2 === 1)
+    const minX = Math.min(...xCoords)
+    const maxX = Math.max(...xCoords)
+    const minY = Math.min(...yCoords)
+    const maxY = Math.max(...yCoords)
+
+    // Ray casting para verificar si un punto está dentro del polígono
+    const isPointInPolygon = (px: number, py: number): boolean => {
+      let inside = false
+      const n = areaPoints.length / 2
+      for (let i = 0, j = n - 1; i < n; j = i++) {
+        const xi = areaPoints[i * 2], yi = areaPoints[i * 2 + 1]
+        const xj = areaPoints[j * 2], yj = areaPoints[j * 2 + 1]
+        if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
+          inside = !inside
+        }
+      }
+      return inside
+    }
+
+    // Verificar si un punto está cubierto por alguna zona
+    const isPointCovered = (px: number, py: number): boolean => {
+      return zones.some(zone => {
+        const dx = px - zone.x
+        const dy = py - zone.y
+        return dx * dx + dy * dy <= zone.radius * zone.radius
+      })
+    }
+
+    // Muestreo de puntos (grid de 30x30 para rapidez)
+    const gridResolution = 30
+    const stepX = (maxX - minX) / gridResolution
+    const stepY = (maxY - minY) / gridResolution
+
+    let pointsInside = 0
+    let pointsCovered = 0
+
+    for (let i = 0; i <= gridResolution; i++) {
+      for (let j = 0; j <= gridResolution; j++) {
+        const px = minX + i * stepX
+        const py = minY + j * stepY
+        if (isPointInPolygon(px, py)) {
+          pointsInside++
+          if (isPointCovered(px, py)) {
+            pointsCovered++
+          }
+        }
+      }
+    }
+
+    return pointsInside > 0 ? (pointsCovered / pointsInside) * 100 : 0
+  }
+
+  // Distribuir pararrayos uniformemente dentro del edificio (solo dentro del polígono)
+  const distributeZonesInBuilding = (areaPoints: number[], count: number): { x: number; y: number }[] => {
+    // Calcular bounding box
+    const xPoints = areaPoints.filter((_, i) => i % 2 === 0)
+    const yPoints = areaPoints.filter((_, i) => i % 2 === 1)
+    const minX = Math.min(...xPoints)
+    const maxX = Math.max(...xPoints)
+    const minY = Math.min(...yPoints)
+    const maxY = Math.max(...yPoints)
+    const centerX = (minX + maxX) / 2
+    const centerY = (minY + maxY) / 2
+    const width = maxX - minX
+    const height = maxY - minY
+
+    // Función para verificar si un punto está dentro del polígono (ray casting)
+    const isPointInPolygon = (px: number, py: number): boolean => {
+      let inside = false
+      const n = areaPoints.length / 2
+      for (let i = 0, j = n - 1; i < n; j = i++) {
+        const xi = areaPoints[i * 2], yi = areaPoints[i * 2 + 1]
+        const xj = areaPoints[j * 2], yj = areaPoints[j * 2 + 1]
+        if (((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi)) {
+          inside = !inside
+        }
+      }
+      return inside
+    }
+
+    // Función para ajustar un punto hacia el centro si está fuera del polígono
+    const adjustToPolygon = (px: number, py: number): { x: number; y: number } => {
+      if (isPointInPolygon(px, py)) {
+        return { x: px, y: py }
+      }
+      // Mover gradualmente hacia el centro hasta estar dentro
+      for (let t = 0.1; t <= 1; t += 0.1) {
+        const newX = px + (centerX - px) * t
+        const newY = py + (centerY - py) * t
+        if (isPointInPolygon(newX, newY)) {
+          return { x: newX, y: newY }
+        }
+      }
+      // Si no se encuentra, usar el centro
+      return { x: centerX, y: centerY }
+    }
+
+    const positions: { x: number; y: number }[] = []
+
+    if (count === 1) {
+      positions.push(adjustToPolygon(centerX, centerY))
+    } else if (count === 2) {
+      positions.push(adjustToPolygon(centerX - width * 0.25, centerY))
+      positions.push(adjustToPolygon(centerX + width * 0.25, centerY))
+    } else if (count <= 4) {
+      // Distribuir en cuadrícula 2x2
+      const offsetX = width * 0.25
+      const offsetY = height * 0.25
+      positions.push(adjustToPolygon(centerX - offsetX, centerY - offsetY))
+      positions.push(adjustToPolygon(centerX + offsetX, centerY - offsetY))
+      if (count > 2) positions.push(adjustToPolygon(centerX - offsetX, centerY + offsetY))
+      if (count > 3) positions.push(adjustToPolygon(centerX + offsetX, centerY + offsetY))
+    } else {
+      // Distribuir en cuadrícula dinámica
+      const cols = Math.ceil(Math.sqrt(count * (width / height)))
+      const rows = Math.ceil(count / cols)
+      const stepX = width / (cols + 1)
+      const stepY = height / (rows + 1)
+
+      for (let row = 0; row < rows && positions.length < count; row++) {
+        for (let col = 0; col < cols && positions.length < count; col++) {
+          const candidateX = minX + stepX * (col + 1)
+          const candidateY = minY + stepY * (row + 1)
+          positions.push(adjustToPolygon(candidateX, candidateY))
+        }
+      }
+    }
+
+    return positions
+  }
+
+  // Función para calcular la longitud en píxeles de cada lado del polígono
+  const calculateSideLengths = (points: Point[]): number[] => {
+    const lengths: number[] = []
+    for (let i = 0; i < points.length; i++) {
+      const p1 = points[i]
+      const p2 = points[(i + 1) % points.length] // Conectar último con primero
+      const length = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2))
+      lengths.push(length)
+    }
+    return lengths
+  }
+
+  // Función para cerrar el polígono y posicionar pararrayos
   const closeCurrentArea = () => {
     if (currentArea.length > 2) {
-      const newArea: Area = {
-        id: `area-${Date.now()}`,
-        points: currentArea.flatMap((p) => [p.x, p.y]),
+      const areaPoints = currentArea.flatMap((p) => [p.x, p.y])
+
+      // En modo mapa, entrar en modo de selección de lado (para indicar el ancho)
+      if (mode === 'map') {
+        setPendingArea({ points: areaPoints, currentArea: [...currentArea] })
+        setSelectingWidthSide(true)
+        setDrawingMode('none')
+        return
+      }
+
+      // En modo grid, procesar directamente
+      finishAreaCreation(areaPoints)
+    }
+  }
+
+  // Handler para cuando el usuario hace clic en un lado del polígono (el lado que representa el ancho)
+  const handleWidthSideClick = (sideIndex: number) => {
+    if (!pendingArea || !buildingWidth || buildingWidth <= 0) {
+      toast.error('No se encontró el ancho del edificio. Verifica el Paso 2.')
+      return
+    }
+
+    // En modo GRID, ajustar las dimensiones del rectángulo según el lado seleccionado
+    if (mode === 'grid') {
+      // Determinar si el lado seleccionado es horizontal (0=arriba, 2=abajo) o vertical (1=derecha, 3=izquierda)
+      const isHorizontalSide = sideIndex === 0 || sideIndex === 2
+
+      // Calcular centro del canvas
+      const centerX = stageWidth / 2
+      const centerY = stageHeight / 2
+
+      let finalLengthPx: number
+      let finalWidthPx: number
+
+      if (isHorizontalSide) {
+        // El usuario seleccionó un lado horizontal como ancho
+        // Entonces: horizontal = buildingWidth, vertical = buildingLength
+        finalWidthPx = buildingWidth * DEFAULT_PIXELS_PER_METER  // Este va en horizontal (ancho visual)
+        finalLengthPx = buildingLength * DEFAULT_PIXELS_PER_METER // Este va en vertical (largo visual)
+      } else {
+        // El usuario seleccionó un lado vertical como ancho
+        // Entonces: vertical = buildingWidth, horizontal = buildingLength (esto es el default)
+        finalLengthPx = buildingLength * DEFAULT_PIXELS_PER_METER // Horizontal
+        finalWidthPx = buildingWidth * DEFAULT_PIXELS_PER_METER   // Vertical
+      }
+
+      // Crear el rectángulo con las dimensiones ajustadas
+      const x1 = centerX - finalWidthPx / 2
+      const y1 = centerY - finalLengthPx / 2
+      const x2 = centerX + finalWidthPx / 2
+      const y2 = centerY + finalLengthPx / 2
+
+      const areaPoints = [
+        x1, y1,  // Superior izquierda
+        x2, y1,  // Superior derecha
+        x2, y2,  // Inferior derecha
+        x1, y2,  // Inferior izquierda
+      ]
+
+      // Resetear escala y crear el área
+      setDynamicPixelsPerMeter(DEFAULT_PIXELS_PER_METER)
+      setSelectingWidthSide(false)
+      setPendingArea(null)
+
+      const rectangleArea: Area = {
+        id: `area-auto-${Date.now()}`,
+        points: areaPoints,
         closed: true,
       }
-      setAreas([...areas, newArea])
-      setCurrentArea([])
+
+      setAreas([rectangleArea])
       setDrawingMode('none')
+
+      // Posicionar pararrayos automáticamente con la escala correcta
+      placeZonesInArea(areaPoints, DEFAULT_PIXELS_PER_METER)
+
+      const orientation = isHorizontalSide ? 'horizontal' : 'vertical'
+      toast.success(`Lado ${sideIndex + 1} seleccionado como ancho (${buildingWidth}m ${orientation})`)
+      return
     }
+
+    // En modo MAPA, calcular escala basada en el lado seleccionado
+    // Calcular longitud en píxeles del lado seleccionado
+    const sideLengthsPx = calculateSideLengths(pendingArea.currentArea)
+    const selectedSidePx = sideLengthsPx[sideIndex]
+
+    // Calcular escala: píxeles por metro usando buildingWidth
+    const calculatedPixelsPerMeter = selectedSidePx / buildingWidth
+
+    // Finalizar creación del área con la escala calculada
+    setSelectingWidthSide(false)
+    finishAreaCreation(pendingArea.points, calculatedPixelsPerMeter)
+    setPendingArea(null)
+
+    toast.success(`Escala calibrada: ${calculatedPixelsPerMeter.toFixed(1)} px/m (ancho = ${buildingWidth}m)`)
+  }
+
+  // Función para calcular escala basada en dimensiones lineales del bounding box
+  const calculateScaleFromBoundingBox = (areaPoints: number[], widthMeters: number, heightMeters: number): number => {
+    const xCoords = areaPoints.filter((_, i) => i % 2 === 0)
+    const yCoords = areaPoints.filter((_, i) => i % 2 === 1)
+    const drawnWidthPx = Math.max(...xCoords) - Math.min(...xCoords)
+    const drawnHeightPx = Math.max(...yCoords) - Math.min(...yCoords)
+
+    // Calcular escala usando dimensiones lineales (promedio de X e Y)
+    const scaleX = drawnWidthPx / widthMeters
+    const scaleY = drawnHeightPx / heightMeters
+    return (scaleX + scaleY) / 2
+  }
+
+  // Función para finalizar la creación del área (usado después de calibración o directamente en grid)
+  const finishAreaCreation = (areaPoints: number[], pixelsPerMeter?: number) => {
+    const newArea: Area = {
+      id: `area-${Date.now()}`,
+      points: areaPoints,
+      closed: true,
+    }
+
+    // Determinar la escala final a usar
+    let finalPixelsPerMeter: number
+    if (pixelsPerMeter && pixelsPerMeter > 0) {
+      // Usar escala proporcionada (desde calibración manual)
+      finalPixelsPerMeter = pixelsPerMeter
+    } else {
+      // Calcular escala basada en dimensiones lineales del bounding box
+      finalPixelsPerMeter = calculateScaleFromBoundingBox(areaPoints, buildingLength, buildingWidth)
+    }
+
+    setDynamicPixelsPerMeter(finalPixelsPerMeter)
+
+    // Reemplazar áreas existentes con la nueva (no agregar)
+    setAreas([newArea])
+    setCurrentArea([])
+    setDrawingMode('none')
+
+    // Posicionar pararrayos automáticamente con la escala correcta
+    setTimeout(() => {
+      placeZonesInArea(areaPoints, finalPixelsPerMeter)
+    }, 0)
+  }
+
+  // Cancelar todo el proceso de calibración
+  const handleCancelCalibration = () => {
+    setSelectingWidthSide(false)
+    setPendingArea(null)
+    setCurrentArea([])
   }
 
   // Detectar si un clic está cerca del primer punto
@@ -577,6 +1069,15 @@ function ProtectionSchemeCanvas({
     return () => window.removeEventListener('keydown', handleKeyPress)
   }, [drawingMode, currentArea])
 
+  // Preservar posición del Stage cuando cambia el modo de edición
+  useEffect(() => {
+    if (stageRef.current && drawingMode === 'edit') {
+      // Forzar que el Stage use la posición del estado
+      stageRef.current.position({ x: stagePosition.x, y: stagePosition.y })
+      stageRef.current.batchDraw()
+    }
+  }, [drawingMode, stagePosition])
+
   // Actualizar radios cuando cambie la escala (solo recalcular sin cambiar modelo/nivel)
   useEffect(() => {
     setProtectionZones((prevZones) => {
@@ -594,93 +1095,6 @@ function ProtectionSchemeCanvas({
       return updatedZones
     })
   }, [dynamicPixelsPerMeter])
-
-  // Añadir pararrayos desde el canvas
-  // Los pararrayos agregados desde aquí se marcan como colocados en el mapa
-  const handleAddPararrayos = useCallback(() => {
-    // Si no hay áreas dibujadas, mostrar alerta
-    if (areas.length === 0) {
-      toast.warning('Primero debes dibujar el área del edificio antes de añadir pararrayos.')
-      return
-    }
-
-    // Calcular el centroide del primer área para colocar el pararrayos
-    const firstArea = areas[0]
-    let sumX = 0
-    let sumY = 0
-    const numPoints = firstArea.points.length / 2
-
-    for (let i = 0; i < firstArea.points.length; i += 2) {
-      sumX += firstArea.points[i]
-      sumY += firstArea.points[i + 1]
-    }
-
-    const centerX = sumX / numPoints
-    const centerY = sumY / numPoints
-
-    // Buscar si hay pararrayos pendientes (no colocados en el mapa)
-    const pendingZoneIndex = protectionZones.findIndex(z => z.placedOnMap === false)
-
-    if (pendingZoneIndex !== -1) {
-      // Si hay un pararrayos pendiente, colocarlo en el mapa
-      const updatedZones = protectionZones.map((zone, index) => {
-        if (index === pendingZoneIndex) {
-          return {
-            ...zone,
-            x: centerX,
-            y: centerY,
-            radius: getProtectionRadius(zone.model, zone.level),
-            placedOnMap: true,
-          }
-        }
-        return zone
-      })
-      setProtectionZones(updatedZones)
-      onZonesChangeRef.current?.(updatedZones)
-    } else {
-      // Si no hay pendientes, crear uno nuevo
-      const newZone: ProtectionZone = {
-        id: `zone-${Date.now()}`,
-        x: centerX,
-        y: centerY,
-        radius: getProtectionRadius(cabezalModel, protectionLevel),
-        model: cabezalModel,
-        level: protectionLevel,
-        mastType,
-        mastHeight,
-        anchorType,
-        anchorSeparation,
-        placedOnMap: true, // Colocado en el mapa
-      }
-      const newZones = [...protectionZones, newZone]
-      setProtectionZones(newZones)
-      onZonesChangeRef.current?.(newZones)
-    }
-  }, [areas, protectionZones, cabezalModel, protectionLevel, mastType, mastHeight, anchorType, anchorSeparation])
-
-  // Eliminar pararrayos seleccionado
-  const handleDeleteZone = useCallback(() => {
-    if (selectedZone) {
-      const newZones = protectionZones.filter((z) => z.id !== selectedZone)
-      setProtectionZones(newZones)
-      setSelectedZone(null)
-      onZonesChangeRef.current?.(newZones)
-    }
-  }, [selectedZone, protectionZones])
-
-  // Eliminar área actual
-  const handleDeleteArea = useCallback(() => {
-    if (areas.length > 0) {
-      setAreas(areas.slice(0, -1))
-    }
-  }, [areas])
-
-  // Editar distancia manualmente
-  const handleEditDistance = (areaId: string, sideIndex: number, currentValue: number) => {
-    setEditingMeasurement({ areaId, sideIndex, currentValue })
-    setNewMeasurementValue(currentValue.toString())
-    setEditModalOpen(true)
-  }
 
   // Guardar la medida editada
   const handleSaveMeasurement = () => {
@@ -701,48 +1115,117 @@ function ProtectionSchemeCanvas({
     }
   }
 
-  // Manejar zoom con la rueda del mouse
-  const handleWheel = (e: KonvaEventObject<WheelEvent>) => {
-    e.evt.preventDefault()
+  // Refs para el estado actual del zoom (evitar closures obsoletas)
+  const scaleRef = useRef(scale)
+  const stagePositionRef = useRef(stagePosition)
+  const areasRef = useRef(areas)
 
-    const stage = stageRef.current
-    if (!stage) return
+  useEffect(() => {
+    scaleRef.current = scale
+    stagePositionRef.current = stagePosition
+    areasRef.current = areas
+  }, [scale, stagePosition, areas])
 
-    const oldScale = scale / 100
-    const pointer = stage.getPointerPosition()
+  // Calcular el centro del edificio (estructura dibujada)
+  const getBuildingCenter = useCallback(() => {
+    const currentAreas = areasRef.current
+    if (currentAreas.length > 0) {
+      const points = currentAreas[0].points
+      const xCoords = points.filter((_, i) => i % 2 === 0)
+      const yCoords = points.filter((_, i) => i % 2 === 1)
+      return {
+        x: (Math.min(...xCoords) + Math.max(...xCoords)) / 2,
+        y: (Math.min(...yCoords) + Math.max(...yCoords)) / 2
+      }
+    }
+    // Si no hay edificio, usar el centro del canvas
+    return { x: stageWidth / 2, y: stageHeight / 2 }
+  }, [stageWidth, stageHeight])
 
-    const mousePointTo = {
-      x: (pointer.x - stage.x()) / oldScale,
-      y: (pointer.y - stage.y()) / oldScale,
+  // Función para hacer zoom manteniendo el edificio centrado
+  const zoomToBuilding = useCallback((newScalePercent: number) => {
+    const newScale = newScalePercent / 100
+    const buildingCenter = getBuildingCenter()
+
+    // Centro del viewport (donde queremos que esté el edificio)
+    const viewportCenterX = stageWidth / 2
+    const viewportCenterY = stageHeight / 2
+
+    // Nueva posición para mantener el edificio en el centro del viewport
+    const newX = viewportCenterX - buildingCenter.x * newScale
+    const newY = viewportCenterY - buildingCenter.y * newScale
+
+    setScale(newScalePercent)
+    setStagePosition({ x: newX, y: newY })
+  }, [getBuildingCenter, stageWidth, stageHeight])
+
+  // Manejar zoom con la rueda del mouse (listener nativo para mejor control)
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || mode === 'select') return
+
+    const handleNativeWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+
+      // Ajustar el zoom centrado en el edificio
+      const direction = e.deltaY > 0 ? -1 : 1
+      const scaleBy = 15 // Incrementos de 15%
+      const currentScale = scaleRef.current
+      const newScalePercent = direction > 0
+        ? Math.min(300, currentScale + scaleBy)
+        : Math.max(20, currentScale - scaleBy)
+
+      // Usar la función de zoom centrado en edificio
+      const newScale = newScalePercent / 100
+      const currentAreas = areasRef.current
+      let buildingCenterX = stageWidth / 2
+      let buildingCenterY = stageHeight / 2
+
+      if (currentAreas.length > 0) {
+        const points = currentAreas[0].points
+        const xCoords = points.filter((_: number, i: number) => i % 2 === 0)
+        const yCoords = points.filter((_: number, i: number) => i % 2 === 1)
+        buildingCenterX = (Math.min(...xCoords) + Math.max(...xCoords)) / 2
+        buildingCenterY = (Math.min(...yCoords) + Math.max(...yCoords)) / 2
+      }
+
+      // Nueva posición para mantener el edificio en el centro del viewport
+      const newX = stageWidth / 2 - buildingCenterX * newScale
+      const newY = stageHeight / 2 - buildingCenterY * newScale
+
+      setScale(newScalePercent)
+      setStagePosition({ x: newX, y: newY })
     }
 
-    // Ajustar el zoom (más sensible)
-    const direction = e.evt.deltaY > 0 ? -1 : 1
-    const scaleBy = 1.05
-    const newScaleValue = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy
+    container.addEventListener('wheel', handleNativeWheel, { passive: false })
+    return () => container.removeEventListener('wheel', handleNativeWheel)
+  }, [mode, stageWidth, stageHeight])
 
-    // Limitar el zoom entre 10% y 200%
-    const clampedScale = Math.max(0.1, Math.min(2, newScaleValue))
-    setScale(Math.round(clampedScale * 100))
+  // Zoom in con botón
+  const handleZoomIn = useCallback(() => {
+    const newScale = Math.min(300, scale + 20)
+    zoomToBuilding(newScale)
+  }, [scale, zoomToBuilding])
 
-    const newPos = {
-      x: pointer.x - mousePointTo.x * clampedScale,
-      y: pointer.y - mousePointTo.y * clampedScale,
-    }
-    setStagePosition(newPos)
-  }
+  // Zoom out con botón
+  const handleZoomOut = useCallback(() => {
+    const newScale = Math.max(20, scale - 20)
+    zoomToBuilding(newScale)
+  }, [scale, zoomToBuilding])
 
   // Manejar clic en el stage (ajustado para zoom)
   const handleStageClickWithZoom = (e: KonvaEventObject<MouseEvent>) => {
     if (drawingMode === 'area') {
       const stage = e.target.getStage()
-      const scaleValue = scale / 100
-      const pointer = stage.getPointerPosition()
+      if (!stage) return
 
-      // Ajustar coordenadas según el zoom y posición
+      const pointer = stage.getPointerPosition()
+      if (!pointer) return
+
       const point = {
-        x: (pointer.x - stagePosition.x) / scaleValue,
-        y: (pointer.y - stagePosition.y) / scaleValue,
+        x: (pointer.x - stagePosition.x) / zoomScale,
+        y: (pointer.y - stagePosition.y) / zoomScale,
       }
 
       // Si hace clic cerca del primer punto, cerrar el polígono
@@ -752,12 +1235,6 @@ function ProtectionSchemeCanvas({
         setCurrentArea([...currentArea, point])
       }
     }
-  }
-
-  // Resetear zoom y posición
-  const handleResetZoom = () => {
-    setScale(100)
-    setStagePosition({ x: 0, y: 0 })
   }
 
   // Capturar imagen del canvas automáticamente (sin notificaciones)
@@ -777,12 +1254,17 @@ function ProtectionSchemeCanvas({
       onCaptureImageRef.current(dataURL, timestamp)
     } catch (error) {
       // Silenciosamente ignorar errores de captura automática
-      console.error('Error al capturar imagen automáticamente:', error)
+      logger.error('Error al capturar imagen automáticamente', error as Error)
     }
   }, [])
 
   // Efecto para capturar automáticamente cuando hay cambios en el esquema
   useEffect(() => {
+    // No capturar durante la configuración inicial del grid para evitar re-renders innecesarios
+    if (isSettingUpGrid.current) {
+      return
+    }
+
     // Solo capturar si hay contenido en el canvas (áreas o zonas de protección)
     if (areas.length > 0 || protectionZones.length > 0 || uploadedImage) {
       // Usar timeout para esperar a que el canvas se actualice completamente
@@ -793,11 +1275,115 @@ function ProtectionSchemeCanvas({
       return () => clearTimeout(timeoutId)
     }
   }, [protectionZones, areas, uploadedImage, captureImage])
+  // Posicionar y crear pararrayos necesarios después de definir un área (garantiza 100% cobertura)
+  const placeZonesInArea = useCallback((areaPoints: number[], customPixelsPerMeter?: number) => {
+    // Usar escala personalizada si se proporciona, sino usar la del estado
+    const pixelsPerMeter = customPixelsPerMeter ?? dynamicPixelsPerMeter
+
+    // Calcular radio de protección con la escala correcta
+    const radiusMeters = PROTECTION_RADII[cabezalModel]?.[protectionLevel] || 60
+    const currentRadius = radiusMeters * pixelsPerMeter
+
+    // Calcular estimación inicial de pararrayos necesarios
+    let requiredCount = calculateRequiredZones(areaPoints, currentRadius)
+
+    // Si hay zonas existentes, usar al menos esa cantidad
+    const existingCount = protectionZones.length
+    requiredCount = Math.max(existingCount, requiredCount)
+
+    // Función para crear zonas con una cantidad dada
+    const createZonesWithCount = (count: number): { x: number; y: number; radius: number }[] => {
+      const positions = distributeZonesInBuilding(areaPoints, count)
+      return positions.map(pos => ({ x: pos.x, y: pos.y, radius: currentRadius }))
+    }
+
+    // Iterativamente aumentar el número de zonas hasta lograr 100% de cobertura
+    let zones = createZonesWithCount(requiredCount)
+    let coverage = checkCoverage(areaPoints, zones)
+    const maxIterations = 20 // Límite de seguridad
+    let iterations = 0
+
+    while (coverage < 99.5 && iterations < maxIterations) {
+      requiredCount += 1
+      zones = createZonesWithCount(requiredCount)
+      coverage = checkCoverage(areaPoints, zones)
+      iterations++
+    }
+
+    // Crear las zonas de protección finales
+    const updatedZones: ProtectionZone[] = []
+    const positions = distributeZonesInBuilding(areaPoints, requiredCount)
+
+    // Reutilizar zonas existentes con sus propiedades
+    protectionZones.forEach((zone, index) => {
+      if (index < positions.length) {
+        updatedZones.push({
+          ...zone,
+          x: positions[index].x,
+          y: positions[index].y,
+          radius: currentRadius,
+          placedOnMap: true,
+        })
+      }
+    })
+
+    // Agregar zonas adicionales si se necesitan más
+    const additionalNeeded = requiredCount - existingCount
+    if (additionalNeeded > 0) {
+      for (let i = existingCount; i < requiredCount; i++) {
+        const newZone: ProtectionZone = {
+          id: `zone-auto-${Date.now()}-${i}`,
+          x: positions[i].x,
+          y: positions[i].y,
+          radius: currentRadius,
+          model: cabezalModel,
+          level: protectionLevel,
+          placedOnMap: true,
+        }
+        updatedZones.push(newZone)
+      }
+      toast.success(`Se agregaron ${additionalNeeded} pararrayos para cubrir el 100% del edificio`)
+    }
+
+    setProtectionZones(updatedZones)
+    onZonesChange?.(updatedZones)
+  }, [cabezalModel, protectionLevel, protectionZones, onZonesChange, dynamicPixelsPerMeter])
+
+  // Finalizar edición y guardar cambios
+  const finishEditing = useCallback(() => {
+    setDrawingMode('none')
+    setEditingAreaId(null)
+    setDraggingVertexIndex(null)
+    // Recalcular escala basada en dimensiones lineales y reposicionar pararrayos
+    if (areas.length > 0) {
+      const areaPoints = areas[0].points
+      const xCoords = areaPoints.filter((_, i) => i % 2 === 0)
+      const yCoords = areaPoints.filter((_, i) => i % 2 === 1)
+      const drawnWidthPx = Math.max(...xCoords) - Math.min(...xCoords)
+      const drawnHeightPx = Math.max(...yCoords) - Math.min(...yCoords)
+      if (drawnWidthPx > 0 && drawnHeightPx > 0 && buildingLength > 0 && buildingWidth > 0) {
+        const scaleX = drawnWidthPx / buildingLength
+        const scaleY = drawnHeightPx / buildingWidth
+        const calculatedPxPerMeter = (scaleX + scaleY) / 2
+        setDynamicPixelsPerMeter(calculatedPxPerMeter)
+        // Reposicionar pararrayos con la escala correcta
+        placeZonesInArea(areaPoints, calculatedPxPerMeter)
+      }
+    }
+  }, [areas, buildingLength, buildingWidth, placeZonesInArea])
+
+  // Actualizar la referencia
+  useEffect(() => {
+    finishEditingRef.current = finishEditing
+  }, [finishEditing])
+
   // Generar área rectangular automáticamente basado en dimensiones del Paso 2
+  // En modo grid, primero entra en modo selección de lado para que el usuario indique cuál es el ancho
   const generateRectangleArea = useCallback(() => {
-    // Convertir metros a píxeles y centrar el rectángulo
-    const lengthPx = buildingLength * PIXELS_PER_METER
-    const widthPx = buildingWidth * PIXELS_PER_METER
+    // Calcular escala dinámica para que el rectángulo ocupe ~70% del canvas
+    // Convertir metros a píxeles usando escala fija
+    const lengthPx = buildingLength * DEFAULT_PIXELS_PER_METER
+    const widthPx = buildingWidth * DEFAULT_PIXELS_PER_METER
 
     const centerX = stageWidth / 2
     const centerY = stageHeight / 2
@@ -807,544 +1393,525 @@ function ProtectionSchemeCanvas({
     const x2 = centerX + lengthPx / 2
     const y2 = centerY + widthPx / 2
 
-    const rectangleArea: Area = {
-      id: `area-auto-${Date.now()}`,
-      points: [
-        x1, y1,  // Superior izquierda
-        x2, y1,  // Superior derecha
-        x2, y2,  // Inferior derecha
-        x1, y2,  // Inferior izquierda
-      ],
-      closed: true,
-    }
+    const areaPoints = [
+      x1, y1,  // Superior izquierda
+      x2, y1,  // Superior derecha
+      x2, y2,  // Inferior derecha
+      x1, y2,  // Inferior izquierda
+    ]
 
-    setAreas([rectangleArea])
+    // Convertir a formato Point[] para el modo de selección
+    const currentAreaPoints: Point[] = [
+      { x: x1, y: y1 },
+      { x: x2, y: y1 },
+      { x: x2, y: y2 },
+      { x: x1, y: y2 },
+    ]
+
+    // Entrar en modo selección de lado para que el usuario indique cuál es el ancho
+    setPendingArea({ points: areaPoints, currentArea: currentAreaPoints })
+    setSelectingWidthSide(true)
     setDrawingMode('none')
-  }, [buildingLength, buildingWidth])
+  }, [buildingLength, buildingWidth, stageWidth, stageHeight])
 
-  const handleAutoGenerateArea = useCallback(() => {
-    if (areas.length > 0) {
-      showConfirm({
-        title: 'Reemplazar área existente',
-        description: '¿Deseas reemplazar el área existente con un rectángulo basado en las dimensiones del edificio?',
-        onConfirm: () => {
-          generateRectangleArea()
-        },
-      })
+  // Generar automáticamente el área rectangular cuando se entra en modo grid por primera vez
+  useEffect(() => {
+    // Resetear los flags cuando se limpia todo (vuelve a modo selección)
+    if (mode === 'select') {
+      hasGeneratedGridArea.current = false
+      isSettingUpGrid.current = false
+      lastDimensions.current = { width: 0, height: 0 }
+      userDeletedStructure.current = false // Permitir regenerar en futuras sesiones
       return
     }
 
-    generateRectangleArea()
-  }, [areas, showConfirm, generateRectangleArea])
+    // No regenerar si el usuario eliminó la estructura manualmente
+    if (userDeletedStructure.current) {
+      return
+    }
 
-  const handleClearAll = useCallback(() => {
-    showConfirm({
-      title: 'Limpiar todo el esquema',
-      description: '¿Estás seguro de que quieres limpiar todo el esquema? Esta acción no se puede deshacer.',
-      onConfirm: () => {
-        setUploadedImage(null)
-        setAreas([])
-        setProtectionZones([])
-        setCurrentArea([])
-        setCustomDistances({})
-        setMode('select') // Volver al modo de selección inicial
-        handleResetZoom()
-        onZonesChangeRef.current?.([])
-        toast.success('Esquema limpiado correctamente')
-      },
-    })
-  }, [showConfirm])
+    // No regenerar si estamos en modo edición o dibujando
+    if (drawingMode === 'edit' || drawingMode === 'area') {
+      return
+    }
 
-  const staticLayers = useMemo(() => (
-    <>
-      {/* Capa de fondo */}
-      <Layer>
-        {mode === 'grid' && renderGrid()}
-        {mode === 'map' && uploadedImage && (
-          <BackgroundImage image={uploadedImage} />
-        )}
-      </Layer>
+    // Solo generar si estamos en modo grid y las dimensiones son válidas
+    if (mode === 'grid' && stageWidth > 100 && stageHeight > 100) {
+      const dimensionsChanged =
+        Math.abs(lastDimensions.current.width - stageWidth) > 50 ||
+        Math.abs(lastDimensions.current.height - stageHeight) > 50
 
-      {/* Capa de áreas dibujadas */}
-      <Layer>
-        {areas.map((area) => {
-          // Convertir puntos a array de objetos Point
-          const points: Point[] = []
-          for (let i = 0; i < area.points.length; i += 2) {
-            points.push({ x: area.points[i], y: area.points[i + 1] })
-          }
-
-          return (
-            <React.Fragment key={area.id}>
-              <Line
-                points={area.points}
-                stroke="#243469"
-                strokeWidth={2}
-                closed={area.closed}
-                fill="rgba(247, 168, 0, 0.25)"
-              />
-              {/* Puntos de vértices del área completada */}
-              {points.map((point, idx) => (
-                <Circle
-                  key={`${area.id}-vertex-${idx}`}
-                  x={point.x}
-                  y={point.y}
-                  radius={5}
-                  fill="#243469"
-                  stroke="#ffffff"
-                  strokeWidth={2}
-                />
-              ))}
-              {/* Etiquetas con distancias para áreas completadas */}
-              {points.map((point, idx) => {
-                const nextIdx = (idx + 1) % points.length
-                const nextPoint = points[nextIdx]
-
-                const distancePx = Math.sqrt(
-                  Math.pow(nextPoint.x - point.x, 2) + Math.pow(nextPoint.y - point.y, 2)
-                )
-
-                // Calcular bounding box del área para escalar
-                const xCoords = points.map(p => p.x)
-                const yCoords = points.map(p => p.y)
-                const areaWidthPx = Math.max(...xCoords) - Math.min(...xCoords)
-                const areaHeightPx = Math.max(...yCoords) - Math.min(...yCoords)
-
-                // Determinar si esta línea es más horizontal o vertical
-                const deltaX = Math.abs(nextPoint.x - point.x)
-                const deltaY = Math.abs(nextPoint.y - point.y)
-                const isHorizontal = deltaX > deltaY
-
-                // Escalar según las dimensiones reales del edificio
-                let calculatedDistance: number
-                if (isHorizontal) {
-                  // Línea horizontal: escalar usando longitud del edificio
-                  calculatedDistance = Math.round((distancePx / areaWidthPx) * buildingLength)
-                } else {
-                  // Línea vertical: escalar usando anchura del edificio
-                  calculatedDistance = Math.round((distancePx / areaHeightPx) * buildingWidth)
-                }
-
-                // Usar distancia personalizada si existe, o la calculada
-                const distanceKey = `${area.id}-${idx}`
-                const distanceMeters = customDistances[distanceKey] ?? calculatedDistance
-
-                // Calcular punto medio de la línea
-                const midX = (point.x + nextPoint.x) / 2
-                const midY = (point.y + nextPoint.y) / 2
-
-                const labelKey = `${area.id}-${idx}`
-                const isHovered = hoveredMeasurement === labelKey
-
-                return (
-                  <React.Fragment key={`${area.id}-distance-${idx}`}>
-                    {/* Fondo del texto */}
-                    <Text
-                      x={midX}
-                      y={midY - 8}
-                      text={`${distanceMeters}m`}
-                      fontSize={isHovered ? 16 : 14}
-                      fill={isHovered ? "#f7a800" : "#243469"}
-                      stroke={isHovered ? "#f7a800" : "#243469"}
-                      strokeWidth={isHovered ? 5 : 4}
-                      align="center"
-                      offsetX={isHovered ? 24 : 20}
-                      onClick={() => handleEditDistance(area.id, idx, distanceMeters)}
-                      onTap={() => handleEditDistance(area.id, idx, distanceMeters)}
-                      onMouseEnter={() => setHoveredMeasurement(labelKey)}
-                      onMouseLeave={() => setHoveredMeasurement(null)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                    {/* Texto principal */}
-                    <Text
-                      x={midX}
-                      y={midY - 8}
-                      text={`${distanceMeters}m`}
-                      fontSize={isHovered ? 16 : 14}
-                      fill="#ffffff"
-                      align="center"
-                      offsetX={isHovered ? 24 : 20}
-                      onClick={() => handleEditDistance(area.id, idx, distanceMeters)}
-                      onTap={() => handleEditDistance(area.id, idx, distanceMeters)}
-                      onMouseEnter={() => setHoveredMeasurement(labelKey)}
-                      onMouseLeave={() => setHoveredMeasurement(null)}
-                      style={{ cursor: 'pointer' }}
-                    />
-                  </React.Fragment>
-                )
-              })}
-            </React.Fragment>
-          )
-        })}
-
-        {/* Área en construcción */}
-        {currentArea.length > 0 && (
-          <>
-            {/* Borde oscuro de la línea */}
-            <Line
-              points={currentArea.flatMap((p) => [p.x, p.y])}
-              stroke="#243469"
-              strokeWidth={8}
-            />
-            {/* Línea amarilla principal */}
-            <Line
-              points={currentArea.flatMap((p) => [p.x, p.y])}
-              stroke="#f7a800"
-              strokeWidth={4}
-            />
-            {/* Puntos de corte (vértices) */}
-            {currentArea.map((point, index) => (
-              <Circle
-                key={`point-${index}`}
-                x={point.x}
-                y={point.y}
-                radius={index === 0 && currentArea.length > 2 ? 10 : 6}
-                fill={index === 0 && currentArea.length > 2 ? "#22c55e" : "#f7a800"}
-                stroke={index === 0 && currentArea.length > 2 ? "#16a34a" : "#243469"}
-                strokeWidth={index === 0 && currentArea.length > 2 ? 3 : 2}
-              />
-            ))}
-            {/* Etiquetas con distancias en metros */}
-            {currentArea.map((point, index) => {
-              if (index === 0) return null // No hay línea anterior al primer punto
-
-              const prevPoint = currentArea[index - 1]
-              const distancePx = Math.sqrt(
-                Math.pow(point.x - prevPoint.x, 2) + Math.pow(point.y - prevPoint.y, 2)
-              )
-
-              // Si hay al menos 2 puntos, calcular escala basada en el bounding box
-              let calculatedDistance: number
-              if (currentArea.length >= 2) {
-                const xCoords = currentArea.map(p => p.x)
-                const yCoords = currentArea.map(p => p.y)
-                const areaWidthPx = Math.max(...xCoords) - Math.min(...xCoords)
-                const areaHeightPx = Math.max(...yCoords) - Math.min(...yCoords)
-
-                // Determinar si esta línea es más horizontal o vertical
-                const deltaX = Math.abs(point.x - prevPoint.x)
-                const deltaY = Math.abs(point.y - prevPoint.y)
-                const isHorizontal = deltaX > deltaY
-
-                // Escalar según las dimensiones reales del edificio
-                if (areaWidthPx > 0 && areaHeightPx > 0) {
-                  if (isHorizontal) {
-                    calculatedDistance = Math.round((distancePx / areaWidthPx) * buildingLength)
-                  } else {
-                    calculatedDistance = Math.round((distancePx / areaHeightPx) * buildingWidth)
-                  }
-                } else {
-                  // Fallback si el área es muy pequeña
-                  calculatedDistance = Math.round(distancePx / PIXELS_PER_METER)
-                }
-              } else {
-                // Fallback para primeros puntos
-                calculatedDistance = Math.round(distancePx / PIXELS_PER_METER)
-              }
-
-              // Usar distancia personalizada si existe, o la calculada
-              const distanceKey = `current-${index}`
-              const distanceMeters = customDistances[distanceKey] ?? calculatedDistance
-
-              // Calcular punto medio de la línea
-              const midX = (point.x + prevPoint.x) / 2
-              const midY = (point.y + prevPoint.y) / 2
-
-              const labelKey = `current-${index}`
-              const isHovered = hoveredMeasurement === labelKey
-
-              return (
-                <React.Fragment key={`distance-${index}`}>
-                  {/* Fondo del texto */}
-                  <Text
-                    x={midX}
-                    y={midY - 8}
-                    text={`${distanceMeters}m`}
-                    fontSize={isHovered ? 16 : 14}
-                    fill={isHovered ? "#f7a800" : "#243469"}
-                    stroke={isHovered ? "#f7a800" : "#243469"}
-                    strokeWidth={isHovered ? 5 : 4}
-                    align="center"
-                    offsetX={isHovered ? 24 : 20}
-                    onClick={() => handleEditDistance('current', index, distanceMeters)}
-                    onTap={() => handleEditDistance('current', index, distanceMeters)}
-                    onMouseEnter={() => setHoveredMeasurement(labelKey)}
-                    onMouseLeave={() => setHoveredMeasurement(null)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  {/* Texto principal */}
-                  <Text
-                    x={midX}
-                    y={midY - 8}
-                    text={`${distanceMeters}m`}
-                    fontSize={isHovered ? 16 : 14}
-                    fill="#ffffff"
-                    align="center"
-                    offsetX={isHovered ? 24 : 20}
-                    onClick={() => handleEditDistance('current', index, distanceMeters)}
-                    onTap={() => handleEditDistance('current', index, distanceMeters)}
-                    onMouseEnter={() => setHoveredMeasurement(labelKey)}
-                    onMouseLeave={() => setHoveredMeasurement(null)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                </React.Fragment>
-              )
-            })}
-            {/* Texto indicador para el primer punto */}
-            {currentArea.length > 2 && (
-              <Text
-                x={currentArea[0].x + 15}
-                y={currentArea[0].y - 10}
-                text="Clic aquí para cerrar"
-                fontSize={12}
-                fill="#22c55e"
-                fontStyle="bold"
-              />
-            )}
-          </>
-        )}
-      </Layer>
-
-      {/* Capa de overlay de área sin cobertura */}
-      <Layer>
-        {!isDraggingZone && areas.length > 0 && protectionZones.length > 0 && (
-          <>
-            {/* Área completa del edificio con overlay rojo */}
-            {areas.map((area) => (
-              <Line
-                key={`overlay-${area.id}`}
-                points={area.points}
-                closed={area.closed}
-                fill="rgba(239, 68, 68, 0.3)"
-                listening={false}
-              />
-            ))}
-            {/* Áreas cubiertas (azul) para "tapar" el rojo */}
-            {protectionZones.map((zone) => (
-              <Circle
-                key={`coverage-${zone.id}`}
-                x={zone.x}
-                y={zone.y}
-                radius={zone.radius}
-                fill="rgba(59, 130, 246, 0.2)"
-                listening={false}
-              />
-            ))}
-          </>
-        )}
-      </Layer>
-    </>
-  ), [areas, buildingLength, buildingWidth, currentArea, customDistances, handleEditDistance, hoveredMeasurement, isDraggingZone, mode, protectionZones, renderGrid, uploadedImage])
+      // Generar si es la primera vez o si las dimensiones cambiaron significativamente
+      if (!hasGeneratedGridArea.current || (dimensionsChanged && areas.length > 0)) {
+        hasGeneratedGridArea.current = true
+        isSettingUpGrid.current = true
+        lastDimensions.current = { width: stageWidth, height: stageHeight }
+        generateRectangleArea()
+        setTimeout(() => {
+          isSettingUpGrid.current = false
+        }, 100)
+      }
+    }
+  }, [mode, stageWidth, stageHeight, generateRectangleArea, areas.length, drawingMode])
 
   return (
-    <div className="space-y-4">
-      {/* Modo de selección inicial */}
-      {mode === 'select' && (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-accent bg-muted/50 p-12">
-          <h4 className="text-lg font-semibold">Selecciona cómo quieres comenzar:</h4>
-          <div className="flex gap-4">
-            <Button
-              size="lg"
-              onClick={() => fileInputRef.current?.click()}
-              className="bg-primary hover:bg-primary/90"
-            >
-              <Upload className="mr-2 h-5 w-5" />
-              Subir tu mapa
-            </Button>
-            <Button
-              size="lg"
-              variant="secondary"
-              onClick={() => {
-                setMode('grid')
-                // Generar automáticamente el rectángulo del edificio al abrir la cuadrícula
-                setTimeout(() => {
-                  generateRectangleArea()
-                }, 100)
-              }}
-            >
-              <LayoutGrid className="mr-2 h-5 w-5" />
-              Dibujar sobre cuadrícula
-            </Button>
+    <div className="flex h-full flex-col">
+      {/* Header con badge de cobertura */}
+      {mode !== 'select' && areas.length > 0 && protectionZones.length > 0 && (
+        <div className="flex justify-end mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-green-500 bg-green-50 px-5 py-1.5 text-sm font-medium text-green-700">
+            Nivel de protección: {coverageLabel} = {coveragePercentLabel}%
           </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleImageUpload}
-            className="hidden"
-          />
         </div>
       )}
+      {/* Canvas siempre visible */}
+      <div className="relative flex-1">
+        <div ref={containerRef} className="absolute inset-0 overflow-hidden rounded-lg bg-card">
+        <Stage
+          ref={stageRef}
+          width={stageWidth}
+          height={stageHeight}
+          scaleX={zoomScale}
+          scaleY={zoomScale}
+          x={stagePosition.x}
+          y={stagePosition.y}
+          onClick={mode !== 'select' ? handleStageClickWithZoom : undefined}
+          draggable={mode !== 'select' && drawingMode === 'none' && !isDraggingZone}
+          onDragEnd={(e) => {
+            if (mode !== 'select') {
+              setStagePosition({ x: e.target.x(), y: e.target.y() })
+            }
+          }}
+        >
+          {/* Capa de fondo con cuadrícula o imagen */}
+          <Layer>
+            {mode !== 'map' && renderGrid()}
+            {mode === 'map' && uploadedImage && (
+              <BackgroundImage image={uploadedImage} width={stageWidth} height={stageHeight} />
+            )}
+          </Layer>
 
-      {/* Canvas y herramientas */}
-      {mode !== 'select' && (
-        <>
-          {/* Barra de herramientas */}
-          <div className="flex flex-wrap items-center gap-4 rounded-lg border bg-muted p-3">
-            {/* Herramientas de plano */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Plano</span>
-              <Button
-                size="sm"
-                variant="outline"
-                title="Subir plano"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="h-6 w-px bg-border" />
-
-            {/* Herramientas de edificio */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Edificio</span>
-              <Button
-                size="sm"
-                variant="outline"
-                title={`Auto-generar área (${buildingLength}m x ${buildingWidth}m)`}
-                onClick={handleAutoGenerateArea}
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                title="Dibujar área manualmente"
-                onClick={() => setDrawingMode('area')}
-                className={drawingMode === 'area' ? 'bg-accent' : ''}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                title="Eliminar última área"
-                onClick={handleDeleteArea}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="h-6 w-px bg-border" />
-
-            {/* Herramientas de pararrayos */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">Pararrayos</span>
-              <Button
-                size="sm"
-                variant="outline"
-                title="Añadir pararrayos"
-                onClick={handleAddPararrayos}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                title="Optimizar cobertura automáticamente"
-                onClick={handleOptimizeParrays}
-                className="bg-green-600 text-white hover:bg-green-700"
-              >
-                <Calculator className="h-4 w-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                title="Eliminar pararrayos seleccionado"
-                onClick={handleDeleteZone}
-                disabled={!selectedZone}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <div className="ml-auto flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={handleClearAll}
-              >
-                Limpiar todo
-              </Button>
-            </div>
-          </div>
-
-          {/* Botón para finalizar área (solo visible cuando se está dibujando) */}
-          {drawingMode === 'area' && currentArea.length > 2 && (
-            <div className="mb-2 flex items-center justify-center gap-2 rounded-lg bg-primary p-3">
-              <span className="text-sm font-semibold text-primary-foreground">
-                Dibujando área: {currentArea.length} puntos
-              </span>
-              <Button
-                size="sm"
-                onClick={closeCurrentArea}
-                className="bg-accent text-accent-foreground hover:bg-accent/90"
-              >
-                <Check className="mr-2 h-4 w-4" />
-                Finalizar área (Enter)
-              </Button>
-            </div>
-          )}
-
-          {/* Área del canvas */}
-          <div className="relative overflow-hidden rounded-lg border-4 border-accent bg-white">
-            <Stage
-              ref={stageRef}
-              width={stageWidth}
-              height={stageHeight}
-              scaleX={scale / 100}
-              scaleY={scale / 100}
-              x={stagePosition.x}
-              y={stagePosition.y}
-              onClick={handleStageClickWithZoom}
-              onWheel={handleWheel}
-              draggable={drawingMode === 'none' && !isDraggingZone}
-              onDragEnd={(e) => {
-                setStagePosition({ x: e.target.x(), y: e.target.y() })
-              }}
-            >
-              {staticLayers}
-
-              {/* Capa de zonas de protección */}
-              <Layer>
-                {/* Mostrar todos los pararrayos */}
-                {protectionZones.map((zone) => (
-                  <ProtectionZoneCircle
-                    key={zone.id}
-                    zone={zone}
-                    isSelected={zone.id === selectedZoneId}
-                    onZoneClick={handleZoneClick}
-                    onDragStart={handleZoneDragStart}
-                    onDragMove={handleZoneDragMove}
-                    onDragEnd={handleZoneDragEnd}
+          {mode !== 'select' && (
+            <>
+              {/* Capa de dibujo actual (mientras se dibuja) */}
+              {drawingMode === 'area' && currentArea.length > 0 && (
+                <Layer>
+                  {/* Líneas del polígono en progreso */}
+                  <Line
+                    points={currentArea.flatMap((p) => [p.x, p.y])}
+                    stroke={COLOR_TOKENS.brandBlue}
+                    strokeWidth={2}
+                    closed={false}
                   />
-                ))}
-              </Layer>
-            </Stage>
-          </div>
+                  {/* Puntos del polígono en progreso */}
+                  {currentArea.map((point, idx) => (
+                    <Circle
+                      key={`current-${idx}`}
+                      x={point.x}
+                      y={point.y}
+                      radius={6}
+                      fill={idx === 0 ? COLOR_TOKENS.brandYellow : COLOR_TOKENS.brandBlue}
+                      stroke={COLOR_TOKENS.white}
+                      strokeWidth={2}
+                    />
+                  ))}
+                </Layer>
+              )}
 
-          {/* Control de escala y zoom */}
-          <div className="flex items-center justify-center gap-4">
-           
+              {/* Capa de áreas dibujadas */}
+              <Layer>
+                {areas.map((area) => {
+                  const points: Point[] = []
+                  for (let i = 0; i < area.points.length; i += 2) {
+                    points.push({ x: area.points[i], y: area.points[i + 1] })
+                  }
+
+                  // Calcular centro del área para el nombre del edificio
+                  const xCoords = area.points.filter((_, i) => i % 2 === 0)
+                  const yCoords = area.points.filter((_, i) => i % 2 === 1)
+                  const centerX = (Math.min(...xCoords) + Math.max(...xCoords)) / 2
+                  const centerY = (Math.min(...yCoords) + Math.max(...yCoords)) / 2
+
+                  return (
+                    <React.Fragment key={area.id}>
+                      <Line
+                        points={area.points}
+                        stroke={COLOR_TOKENS.boxStroke}
+                        strokeWidth={1}
+                        closed={area.closed}
+                        fill={COLOR_TOKENS.boxFillAlpha}
+                      />
+                      {/* Nombre del edificio en el centro del área */}
+                      {buildingName && area.closed && (
+                        <Text
+                          x={centerX - 100}
+                          y={centerY - 8}
+                          width={200}
+                          text={buildingName.toUpperCase()}
+                          fontSize={12}
+                          fontStyle="600"
+                          fill={COLOR_TOKENS.boxStroke}
+                          align="center"
+                          letterSpacing={1.5}
+                          listening={false}
+                        />
+                      )}
+                      {/* Vértices en modo dibujo (no arrastrables) */}
+                      {drawingMode === 'area' && points.map((point, idx) => (
+                        <Circle
+                          key={`${area.id}-vertex-${idx}`}
+                          x={point.x}
+                          y={point.y}
+                          radius={5}
+                          fill={COLOR_TOKENS.brandBlue}
+                          stroke={COLOR_TOKENS.white}
+                          strokeWidth={1}
+                        />
+                      ))}
+                      {/* Vértices en modo edición (arrastrables) */}
+                      {drawingMode === 'edit' && editingAreaId === area.id && points.map((point, idx) => (
+                        <Circle
+                          key={`${area.id}-edit-vertex-${idx}`}
+                          x={point.x}
+                          y={point.y}
+                          radius={8}
+                          fill={draggingVertexIndex === idx ? COLOR_TOKENS.brandYellow : COLOR_TOKENS.brandBlue}
+                          stroke={COLOR_TOKENS.white}
+                          strokeWidth={2}
+                          draggable
+                          onDragStart={(e) => {
+                            e.cancelBubble = true
+                            handleVertexDragStart(idx)
+                          }}
+                          onDragMove={(e) => {
+                            e.cancelBubble = true
+                            const newX = e.target.x()
+                            const newY = e.target.y()
+                            handleVertexDragMove(area.id, idx, newX, newY)
+                          }}
+                          onDragEnd={(e) => {
+                            e.cancelBubble = true
+                            handleVertexDragEnd()
+                          }}
+                          style={{ cursor: 'move' }}
+                        />
+                      ))}
+                    </React.Fragment>
+                  )
+                })}
+              </Layer>
+
+              {/* Capa de selección de lado para calibración (seleccionar el lado que representa el ancho) */}
+              {selectingWidthSide && pendingArea && (
+                <Layer>
+                  {/* Dibujar el polígono pendiente */}
+                  <Line
+                    points={pendingArea.points}
+                    stroke={COLOR_TOKENS.boxStroke}
+                    strokeWidth={2}
+                    closed={true}
+                    fill={COLOR_TOKENS.boxFillAlpha}
+                  />
+                  {/* Lados clickeables con números */}
+                  {pendingArea.currentArea.map((point, idx) => {
+                    const nextPoint = pendingArea.currentArea[(idx + 1) % pendingArea.currentArea.length]
+                    const midX = (point.x + nextPoint.x) / 2
+                    const midY = (point.y + nextPoint.y) / 2
+                    const sideLengthsPx = calculateSideLengths(pendingArea.currentArea)
+                    const lengthPx = sideLengthsPx[idx]
+
+                    // En modo grid, determinar si este lado es horizontal o vertical
+                    // y mostrar la dimensión correspondiente en metros
+                    const isHorizontalSide = idx === 0 || idx === 2
+                    let sideLabel: string
+                    if (mode === 'grid') {
+                      // En grid, el rectángulo inicial tiene buildingLength en horizontal y buildingWidth en vertical
+                      const lengthMeters = isHorizontalSide ? buildingLength : buildingWidth
+                      sideLabel = `${lengthMeters}m`
+                    } else {
+                      sideLabel = `${lengthPx.toFixed(0)}px`
+                    }
+
+                    return (
+                      <React.Fragment key={`side-${idx}`}>
+                        {/* Línea del lado (clickeable) */}
+                        <Line
+                          points={[point.x, point.y, nextPoint.x, nextPoint.y]}
+                          stroke={COLOR_TOKENS.brandBlue}
+                          strokeWidth={4}
+                          hitStrokeWidth={20}
+                          onClick={() => handleWidthSideClick(idx)}
+                          onTap={() => handleWidthSideClick(idx)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        {/* Círculo con número en el centro del lado */}
+                        <Circle
+                          x={midX}
+                          y={midY}
+                          radius={16}
+                          fill={COLOR_TOKENS.brandBlue}
+                          stroke={COLOR_TOKENS.white}
+                          strokeWidth={2}
+                          onClick={() => handleWidthSideClick(idx)}
+                          onTap={() => handleWidthSideClick(idx)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <Text
+                          x={midX - 8}
+                          y={midY - 6}
+                          width={16}
+                          text={String(idx + 1)}
+                          fontSize={12}
+                          fontStyle="bold"
+                          fill={COLOR_TOKENS.white}
+                          align="center"
+                          listening={false}
+                        />
+                        {/* Mostrar longitud debajo del número (metros en grid, px en mapa) */}
+                        <Text
+                          x={midX - 25}
+                          y={midY + 18}
+                          width={50}
+                          text={sideLabel}
+                          fontSize={10}
+                          fill={COLOR_TOKENS.brandBlue}
+                          align="center"
+                          listening={false}
+                        />
+                      </React.Fragment>
+                    )
+                  })}
+                </Layer>
+              )}
+
+              {/* Capa de zonas de protección - visible solo si hay edificio y no se está editando/dibujando */}
+              {areas.length > 0 && drawingMode === 'none' && !selectingWidthSide && (
+                <Layer>
+                  {protectionZones.map((zone, index) => (
+                    <ProtectionZoneCircle
+                      key={zone.id}
+                      zone={zone}
+                      zoneNumber={index + 1}
+                      isSelected={zone.id === selectedZoneId}
+                      areaBounds={areaBounds}
+                      areaPoints={areas.length > 0 ? areas[0].points : null}
+                      onZoneClick={handleZoneClick}
+                      onDragStart={handleZoneDragStart}
+                      onDragEnd={handleZoneDragEnd}
+                    />
+                  ))}
+                </Layer>
+              )}
+            </>
+          )}
+        </Stage>
+        </div>
+        {/* Modo de selección inicial - overlay sobre la cuadrícula */}
+        {mode === 'select' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+            <div className="flex flex-col gap-6 border rounded-lg py-6 px-12 bg-card shadow-lg">
+              <h4 className="text-md font-semibold">Selecciona cómo quieres comenzar:</h4>
+              <Button
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="bg-primary hover:bg-primary/90"
+              >
+                <Upload className="mr-2 h-4 w-4" />
+                Subir tu mapa
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setMode('grid')}
+              >
+                <LayoutGrid className="mr-2 h-4 w-4" />
+                Dibujar sobre cuadrícula
+              </Button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
+          </div>
+        )}
+
+        {/* Badge "Modo Dibujo" en esquina superior izquierda */}
+        {drawingMode === 'area' && mode !== 'select' && (
+          <div className="absolute top-4 left-4 z-10">
+            <div className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-md shadow-lg">
+              <PenTool className="h-4 w-4" />
+              <div className="flex flex-col">
+                <span className="text-xs font-semibold">Modo Dibujo</span>
+                <span className="text-[10px] opacity-80">Añade vértices o cierra la forma</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Badge "Seleccionar Lado del Ancho" para calibración */}
+        {selectingWidthSide && (
+          <div className="absolute top-4 left-4 z-10">
+            <div className="flex items-center gap-3 bg-primary text-primary-foreground px-4 py-3 rounded-md shadow-lg">
+              <Ruler className="h-5 w-5" />
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold">Selecciona el lado que representa el ANCHO</span>
+                {mode === 'grid' ? (
+                  <span className="text-[10px] opacity-80">
+                    Dimensiones: {buildingLength}m (longitud) × {buildingWidth}m (ancho)
+                  </span>
+                ) : (
+                  <span className="text-[10px] opacity-80">Ancho del edificio: {buildingWidth}m (del Paso 2)</span>
+                )}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelCalibration}
+                className="ml-2 h-7 px-2 text-primary-foreground hover:bg-primary-foreground/20"
+              >
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Botones de Zoom en esquina superior derecha */}
+        {mode !== 'select' && (
+          <div className="absolute top-4 right-4 z-10 flex flex-col gap-1">
             <Button
-              size="sm"
               variant="secondary"
-              onClick={handleResetZoom}
-              title="Resetear zoom y posición"
+              size="icon"
+              className="h-8 w-8 bg-card/90 hover:bg-card shadow-md"
+              onClick={handleZoomIn}
+              title="Acercar"
             >
-              Resetear vista
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-8 w-8 bg-card/90 hover:bg-card shadow-md"
+              onClick={handleZoomOut}
+              title="Alejar"
+            >
+              <ZoomOut className="h-4 w-4" />
             </Button>
           </div>
-          <div className="text-center text-xs text-muted-foreground">
-            Usa la rueda del mouse para hacer zoom o arrastra el canvas para moverte
-          </div>
+        )}
 
-          {/* Información del esquema */}
-        
-        </>
-      )}
+        {/* Panel de opciones para modo cuadrícula - crear estructura (cuando no hay ninguna) */}
+        {mode === 'grid' && areas.length === 0 && drawingMode === 'none' && !selectingWidthSide && (
+          <div className="absolute bottom-4 left-4 z-10 flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-card/90 hover:bg-card shadow-md"
+              onClick={() => {
+                userDeletedStructure.current = false
+                generateRectangleArea()
+              }}
+              title="Generar rectángulo automático"
+            >
+              <LayoutGrid className="h-4 w-4 mr-2" />
+              Generar rectángulo
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-card/90 hover:bg-card shadow-md"
+              onClick={() => {
+                setDrawingMode('area')
+              }}
+              title="Dibujar polígono personalizado"
+            >
+              <Hexagon className="h-4 w-4 mr-2" />
+              Dibujar polígono
+            </Button>
+          </div>
+        )}
+
+        {/* Panel de opciones para modo cuadrícula - editar o dibujar polígono (cuando ya hay estructura) */}
+        {mode === 'grid' && areas.length > 0 && drawingMode === 'none' && !selectingWidthSide && (
+          <div className="absolute bottom-4 left-4 z-10 flex gap-2">
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-card/90 hover:bg-card shadow-md"
+              onClick={(e) => {
+                e.stopPropagation()
+                editStructure()
+              }}
+              title="Editar estructura actual"
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Editar
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="bg-card/90 hover:bg-card shadow-md"
+              onClick={() => {
+                setAreas([])
+                setProtectionZones([])
+                setDrawingMode('area')
+              }}
+              title="Dibujar polígono personalizado"
+            >
+              <Hexagon className="h-4 w-4 mr-2" />
+              Dibujar polígono
+            </Button>
+          </div>
+        )}
+
+        {/* Badge "Modo Edición" con controles de escala */}
+        {drawingMode === 'edit' && mode !== 'select' && (
+          <div className="absolute top-4 left-4 z-10">
+            <div className="flex flex-col gap-2 bg-primary text-primary-foreground p-3 rounded-md shadow-lg">
+              <div className="flex items-center gap-2">
+                <Move className="h-4 w-4" />
+                <div className="flex flex-col">
+                  <span className="text-xs font-semibold">Modo Edición</span>
+                  <span className="text-[10px] opacity-80">Arrastra los vértices para modificar</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 pt-2 border-t border-primary-foreground/20">
+                <span className="text-[10px]">Escala:</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-primary-foreground hover:bg-primary-foreground/20"
+                  onClick={() => handleScaleStructure(0.9)}
+                  title="Reducir 10%"
+                >
+                  <ZoomOut className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 w-6 p-0 text-primary-foreground hover:bg-primary-foreground/20"
+                  onClick={() => handleScaleStructure(1.1)}
+                  title="Aumentar 10%"
+                >
+                  <ZoomIn className="h-3 w-3" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-primary-foreground hover:bg-primary-foreground/20 ml-auto"
+                  onClick={finishEditing}
+                  title="Finalizar edición"
+                >
+                  <Check className="h-3 w-3 mr-1" />
+                  <span className="text-[10px]">Listo</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </div>
 
       {/* Modal para editar medidas */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
@@ -1403,6 +1970,37 @@ function ProtectionSchemeCanvas({
         confirmText="Confirmar"
         cancelText="Cancelar"
       />
+
+      <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span
+              className="h-3 w-3 rounded-full border border-dashed"
+              style={{ borderColor: COLOR_TOKENS.brandBlue, borderWidth: 2 }}
+            />
+            <span>Radio de Protección</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-sm border border-[var(--border-strong)] bg-[var(--surface-muted)]" />
+            <span>Estructuras</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <span>Grid: 10m x 10m</span>
+          {mode !== 'select' && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetCanvas}
+              className="h-6 px-2 text-[11px] text-muted-foreground hover:text-destructive"
+              title="Reiniciar canvas"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
